@@ -69,15 +69,15 @@ public class App {
 					BufferedImage errorsymbol_place = analysis.error_symbol_pos(image_original, image_denoise);
 
 					// 適宜パスを変更
-					String pathname_denoiseqr = "data/sample/denoiseqr/"
+					String pathname_denoiseqr = "data/sample/10/denoiseqr/"
 							+ i + ".png";
-					String pathname_denoisebinqr = "data/sample/denoisebinqr/"
+					String pathname_denoisebinqr = "data/sample/10/denoisebinqr/"
 							+ i + ".png";
-					String pathname_originalqr = "data/sample/originalqr/"
+					String pathname_originalqr = "data/sample/10/originalqr/"
 							+ i + ".png";
-					String pathname_errormodule_place = "data/sample/errormodule_place/"
+					String pathname_errormodule_place = "data/sample/10/errormodule_place/"
 							+ i + ".png";
-					String pathname_errorsymbol_place = "data/sample/errorsymbol_place/"
+					String pathname_errorsymbol_place = "data/sample/10/errorsymbol_place/"
 							+ i + ".png";
 					ImageIO.write(image_denoise, "png", new File(pathname_denoiseqr));
 					ImageIO.write(image_denoise_bin, "png", new File(pathname_denoisebinqr));
@@ -98,15 +98,15 @@ public class App {
 					BufferedImage errorsymbol_place = analysis.error_symbol_pos(image_original, image_denoise);
 
 					// 適宜パスを変更
-					String pathname_denoiseqr = "data/sample/denoiseqr/"
+					String pathname_denoiseqr = "data/sample/10/denoiseqr/"
 							+ i + ".png";
-					String pathname_denoisebinqr = "data/sample/denoisebinqr/"
+					String pathname_denoisebinqr = "data/sample/10/denoisebinqr/"
 							+ i + ".png";
-					String pathname_originalqr = "data/sample/originalqr/"
+					String pathname_originalqr = "data/sample/10/originalqr/"
 							+ i + ".png";
-					String pathname_errormodule_place = "data/sample/errormodule_place/"
+					String pathname_errormodule_place = "data/sample/10/errormodule_place/"
 							+ i + ".png";
-					String pathname_errorsymbol_place = "data/sample/errorsymbol_place/"
+					String pathname_errorsymbol_place = "data/sample/10/errorsymbol_place/"
 							+ i + ".png";
 					ImageIO.write(image_denoise, "png", new File(pathname_denoiseqr));
 					ImageIO.write(image_denoise_bin, "png", new File(pathname_denoisebinqr));
