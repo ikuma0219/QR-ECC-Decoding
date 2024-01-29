@@ -43,7 +43,7 @@ public class App {
 			System.out.println(i);
 			// 環境ごとにresourseがあるパスが違うので適宜変更
 			String pathname_original = "data/resourse/original/" + i + ".png";
-			String pathname_denoise = "data/resourse/denoised/10/" + i + ".png";
+			String pathname_denoise = "data/resourse/denoised/9.5/" + i + ".png";
 
 			File file_original = new File(pathname_original);
 			File file_denoise = new File(pathname_denoise);
@@ -69,15 +69,15 @@ public class App {
 					BufferedImage errorsymbol_place = analysis.error_symbol_pos(image_original, image_denoise);
 
 					// 適宜パスを変更
-					String pathname_denoiseqr = "data/sample/10/denoiseqr/"
+					String pathname_denoiseqr = "data/sample/9.5/denoiseqr/"
 							+ i + ".png";
-					String pathname_denoisebinqr = "data/sample/10/denoisebinqr/"
+					String pathname_denoisebinqr = "data/sample/9.5/denoisebinqr/"
 							+ i + ".png";
-					String pathname_originalqr = "data/sample/10/originalqr/"
+					String pathname_originalqr = "data/sample/9.5/originalqr/"
 							+ i + ".png";
-					String pathname_errormodule_place = "data/sample/10/errormodule_place/"
+					String pathname_errormodule_place = "data/sample/9.5/errormodule_place/"
 							+ i + ".png";
-					String pathname_errorsymbol_place = "data/sample/10/errorsymbol_place/"
+					String pathname_errorsymbol_place = "data/sample/9.5/errorsymbol_place/"
 							+ i + ".png";
 					ImageIO.write(image_denoise, "png", new File(pathname_denoiseqr));
 					ImageIO.write(image_denoise_bin, "png", new File(pathname_denoisebinqr));
@@ -98,15 +98,15 @@ public class App {
 					BufferedImage errorsymbol_place = analysis.error_symbol_pos(image_original, image_denoise);
 
 					// 適宜パスを変更
-					String pathname_denoiseqr = "data/sample/10/denoiseqr/"
+					String pathname_denoiseqr = "data/sample/9.5/denoiseqr/"
 							+ i + ".png";
-					String pathname_denoisebinqr = "data/sample/10/denoisebinqr/"
+					String pathname_denoisebinqr = "data/sample/9.5/denoisebinqr/"
 							+ i + ".png";
-					String pathname_originalqr = "data/sample/10/originalqr/"
+					String pathname_originalqr = "data/sample/9.5/originalqr/"
 							+ i + ".png";
-					String pathname_errormodule_place = "data/sample/10/errormodule_place/"
+					String pathname_errormodule_place = "data/sample/9.5/errormodule_place/"
 							+ i + ".png";
-					String pathname_errorsymbol_place = "data/sample/10/errorsymbol_place/"
+					String pathname_errorsymbol_place = "data/sample/9.5/errorsymbol_place/"
 							+ i + ".png";
 					ImageIO.write(image_denoise, "png", new File(pathname_denoiseqr));
 					ImageIO.write(image_denoise_bin, "png", new File(pathname_denoisebinqr));
