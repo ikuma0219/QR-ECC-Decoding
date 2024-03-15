@@ -1,5 +1,6 @@
 import os
 import cv2
+import csv
 
 # シンボル座標
 symbols = [
@@ -58,7 +59,7 @@ def main():
     for i in range(200):
         print(i)
         original_path = os.path.join(directory, 'original', f'{i}.png')
-        denoised_path = os.path.join(directory, 'denoised', '9.7', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '9.8', f'{i}.png')
         process_image(original_path, denoised_path)
 
 def process_image(original_path, denoised_path):
@@ -82,6 +83,9 @@ def process_image(original_path, denoised_path):
     print(f"Error Symbols: {error_symbols}")
     print()
 
+    # Error SymbolsをCSVファイルに保存
+    save_error_symbols_to_csv(error_symbols)
+
 def calculate_errors(original_image, denoised_image):
     moderror_count = 0
     symerror_count = 0
@@ -101,11 +105,18 @@ def calculate_errors(original_image, denoised_image):
                     if (i, j) in symbol and symbol_index not in counted_symbols:
                         symerror_count += 1
                         counted_symbols.add(symbol_index)
-                        error_symbols.append(symbol_index + 1)
+                        error_symbols.append(symbol_index)
 
     # 次の繰り返しのためにセットをクリア
     counted_symbols.clear()
 
     return moderror_count, symerror_count, error_symbols
 
-main() 
+def save_error_symbols_to_csv(error_symbols):
+    csv_file_path = 'error_symbols.csv'
+    with open(csv_file_path, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([error_symbols])
+
+if __name__ == "__main__":
+    main()
