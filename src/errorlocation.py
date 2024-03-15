@@ -52,6 +52,14 @@ symbols = [
 moderror_counts = []
 symerror_counts = []
 
+def main():
+    directory = '/home/higuchi/QR-decoding/data/resourse/'
+
+    for i in range(200):  # 0.png から 199.png までの画像を処理
+        original_path = os.path.join(directory, 'original', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '9.7', f'{i}.png')
+        process_image(original_path, denoised_path)
+
 def process_image(original_path, denoised_path):
     # 画像を読み込む
     original_image = cv2.imread(original_path, cv2.IMREAD_GRAYSCALE)
@@ -99,6 +107,4 @@ def calculate_errors(original_image, denoised_image):
 
     return moderror_count, symerror_count, error_symbols
 
-original_path = '/home/higuchi/QR-decoding/data/resourse/original/0.png'
-denoised_path = '/home/higuchi/QR-decoding/data/resourse/denoised/9.7/0.png'
-process_image(original_path, denoised_path) 
+main() 
