@@ -15,23 +15,28 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 public class App {
-	public static void main(String[] args) throws IOException {
-		try {
-			File path = new File("data/resourse/denoised/9.6/0.png");
-			BufferedImage img = ImageIO.read(path);
-			LuminanceSource source = new BufferedImageLuminanceSource(img);
-			Binarizer bin = new HybridBinarizer(source);
-			BinaryBitmap bitmap = new BinaryBitmap(bin);
+	public static void main(String[] args) {
+		int successfulDecodes = 0;
+		for (int i = 0; i < 200; i++) {
+			try {
+				File path = new File("data/resourse/denoised/9.6/" + i + ".png");
+				BufferedImage img = ImageIO.read(path);
+				LuminanceSource source = new BufferedImageLuminanceSource(img);
+				Binarizer bin = new HybridBinarizer(source);
+				BinaryBitmap bitmap = new BinaryBitmap(bin);
 
-			QRCodeReader reader = new QRCodeReader();
-			Result result = reader.decode(bitmap);
+				QRCodeReader reader = new QRCodeReader();
+				Result result = reader.decode(bitmap);
 
-			String data = result.getText();
-			System.out.println(data);
-		} catch (IOException | NotFoundException e) {
-			System.err.println(e.getMessage());
-		} catch (ChecksumException | FormatException e) {
-			System.err.println(e.getMessage());
+				String data = result.getText();
+				System.out.println(i + ".png " + data);
+				successfulDecodes++;
+			} catch (IOException | NotFoundException e) {
+				System.err.println(i + ".png: " + e.getMessage());
+			} catch (ChecksumException | FormatException e) {
+				System.err.println(i + ".png: " + e.getMessage());
+			}
 		}
+		System.out.println("Total successful decodes: " + successfulDecodes);
 	}
 }
