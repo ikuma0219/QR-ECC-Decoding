@@ -179,8 +179,10 @@ public final class Decoder {
       codewordsInts[i] = codewordBytes[i] & 0xFF;
     }
     int errorsCorrected = 0;
+    int[] eraseposition = {};
     try {
-      errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
+      errorsCorrected = rsDecoder.erasedecodeWithECCount(codewordsInts, eraseposition, codewordBytes.length - numDataCodewords);
+      // errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
     } catch (ReedSolomonException ignored) {
       throw ChecksumException.getChecksumInstance();
     }
