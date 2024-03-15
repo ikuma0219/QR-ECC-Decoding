@@ -55,7 +55,8 @@ symerror_counts = []
 def main():
     directory = '/home/higuchi/QR-decoding/data/resourse/'
 
-    for i in range(200):  # 0.png から 199.png までの画像を処理
+    for i in range(200):
+        print(i)
         original_path = os.path.join(directory, 'original', f'{i}.png')
         denoised_path = os.path.join(directory, 'denoised', '9.7', f'{i}.png')
         process_image(original_path, denoised_path)
