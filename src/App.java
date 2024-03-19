@@ -1,5 +1,8 @@
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
@@ -15,28 +18,65 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 public class App {
+	private static final String CSV_FILE = "error_symbols.csv";
+	private static final String SAVE_FILE = "save_eraseposition.txt";
+	private static final String ORIGINAL_IMAGE_PATH = "data/resourse/original/";
+	private static final String DENOISED_IMAGE_PATH = "data/resourse/denoised/9.9/";
+
 	public static void main(String[] args) {
 		int successfulDecodes = 0;
 		for (int i = 0; i < 200; i++) {
 			try {
-				File path = new File("data/resourse/denoised/9.6/" + i + ".png");
-				BufferedImage img = ImageIO.read(path);
-				LuminanceSource source = new BufferedImageLuminanceSource(img);
-				Binarizer bin = new HybridBinarizer(source);
-				BinaryBitmap bitmap = new BinaryBitmap(bin);
+				File denoisedImageFile = new File(ORIGINAL_IMAGE_PATH + i + ".png");
+				File originalImageFile = new File(DENOISED_IMAGE_PATH + i + ".png");
 
-				QRCodeReader reader = new QRCodeReader();
-				Result result = reader.decode(bitmap);
+				BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
+				BufferedImage originalImage = ImageIO.read(originalImageFile);
 
-				String data = result.getText();
-				System.out.println(i + ".png " + data);
-				successfulDecodes++;
-			} catch (IOException | NotFoundException e) {
-				System.err.println(i + ".png: " + e.getMessage());
-			} catch (ChecksumException | FormatException e) {
-				System.err.println(i + ".png: " + e.getMessage());
+				String errorSymbol = getErrorSymbol(i);
+
+				String denoisedData = decodeQRCode(denoisedImage, errorSymbol, i);
+				String originalData = decodeQRCode(originalImage, errorSymbol, i);
+
+				if (denoisedData != null && denoisedData.equals(originalData)) {
+					successfulDecodes++;
+				}
+
+			} catch (IOException e) {
+				System.err.println("Error reading image: " + e.getMessage());
+			} catch (NotFoundException | ChecksumException | FormatException e) {
+				System.err.println(i + ".png " + e.getMessage());
 			}
 		}
 		System.out.println("Total successful decodes: " + successfulDecodes);
+	}
+
+	private static String getErrorSymbol(int targetRow) throws IOException {
+		try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
+			String line;
+			int currentRow = 0;
+			while ((line = reader.readLine()) != null) {
+				if (currentRow == targetRow) {
+					try (FileWriter writer = new FileWriter(SAVE_FILE)) {
+						writer.write(line);
+					}
+					return line;
+				}
+				currentRow++;
+			}
+		}
+		return null;
+	}
+
+	private static String decodeQRCode(BufferedImage image, String errorSymbol, int i)
+			throws NotFoundException, ChecksumException, FormatException {
+		LuminanceSource source = new BufferedImageLuminanceSource(image);
+		Binarizer binarizer = new HybridBinarizer(source);
+		BinaryBitmap bitmap = new BinaryBitmap(binarizer);
+		QRCodeReader reader = new QRCodeReader();
+		Result result = reader.decode(bitmap);
+		String data = result.getText();
+		System.out.println(i + ".png " + data);
+		return data;
 	}
 }

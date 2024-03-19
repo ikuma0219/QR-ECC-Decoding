@@ -54,12 +54,12 @@ moderror_counts = []
 symerror_counts = []
 
 def main():
-    directory = '/home/higuchi/QR-decoding/data/resourse/'
+    directory = "C:\\Users\\ikuma\\QR-decoding\\data\\resourse"
 
     for i in range(200):
         print(i)
         original_path = os.path.join(directory, 'original', f'{i}.png')
-        denoised_path = os.path.join(directory, 'denoised', '9.8', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '9.9', f'{i}.png')
         process_image(original_path, denoised_path)
 
 def process_image(original_path, denoised_path):
@@ -116,7 +116,7 @@ def save_error_symbols_to_csv(error_symbols):
     csv_file_path = 'error_symbols.csv'
     with open(csv_file_path, mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow([error_symbols])
+        writer.writerow(error_symbols)
 
 if __name__ == "__main__":
     main()
