@@ -55,6 +55,7 @@ symerror_counts = []
 
 def main():
     directory = "C:\\Users\\ikuma\\QR-decoding\\data\\resourse"
+    clear_csv_file()
 
     for i in range(200):
         print(i)
@@ -117,6 +118,10 @@ def save_error_symbols_to_csv(error_symbols):
     with open(csv_file_path, mode='a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(error_symbols)
+
+def clear_csv_file():
+    csv_file_path = 'error_symbols.csv'
+    open(csv_file_path, 'w').close()
 
 if __name__ == "__main__":
     main()
