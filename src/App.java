@@ -27,16 +27,18 @@ public class App {
 		int successfulDecodes = 0;
 		for (int i = 0; i < 200; i++) {
 			try {
-				File denoisedImageFile = new File(ORIGINAL_IMAGE_PATH + i + ".png");
-				File originalImageFile = new File(DENOISED_IMAGE_PATH + i + ".png");
+				File originalImageFile = new File(ORIGINAL_IMAGE_PATH + i + ".png");
+				File denoisedImageFile= new File(DENOISED_IMAGE_PATH + i + ".png");
 
-				BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
 				BufferedImage originalImage = ImageIO.read(originalImageFile);
+				BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
 
 				String errorSymbol = getErrorSymbol(i);
 
-				String denoisedData = decodeQRCode(denoisedImage, errorSymbol, i);
 				String originalData = decodeQRCode(originalImage, errorSymbol, i);
+				String denoisedData = decodeQRCode(denoisedImage, errorSymbol, i);
+
+				System.out.println(i + ".png " + originalData + " " + denoisedData);
 
 				if (denoisedData != null && denoisedData.equals(originalData)) {
 					successfulDecodes++;
@@ -76,7 +78,6 @@ public class App {
 		QRCodeReader reader = new QRCodeReader();
 		Result result = reader.decode(bitmap);
 		String data = result.getText();
-		System.out.println(i + ".png " + data);
 		return data;
 	}
 }
