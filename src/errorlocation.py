@@ -98,7 +98,7 @@ def calculate_errors(original_image, denoised_image):
             denoised_value = denoised_image[i, j]
             original_value = original_image[i, j]
 
-            if (original_value == 255 and denoised_value <= 139) or (original_value == 0 and denoised_value >= 81):
+            if (81 <= denoised_value <= 139):
                 moderror_count += 1
 
                 # シンボルの各座標を確認
