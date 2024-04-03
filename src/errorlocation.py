@@ -54,7 +54,8 @@ moderror_counts = []
 symerror_counts = []
 
 def main():
-    directory = "C:\\Users\\ikuma\\QR-decoding\\data\\resourse"
+    # directory = "C:\\Users\\ikuma\\QR-decoding\\data\\resourse" #windows
+    directory = "/home/higuchi/QR-decoding/data/resourse" #Ubuntu
     clear_csv_file()
 
     for i in range(200):
