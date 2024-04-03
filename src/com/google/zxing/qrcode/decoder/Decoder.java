@@ -204,7 +204,7 @@ public final class Decoder {
   public static int[] getErasePosition() {
     List<Integer> rowData = new ArrayList<>();
     try {
-        FileReader reader = new FileReader("save_eraseposition.txt");
+        FileReader reader = new FileReader("temp/save_eraseposition.txt");
         BufferedReader bufferedReader = new BufferedReader(reader);
         String line;
         while ((line = bufferedReader.readLine()) != null) {

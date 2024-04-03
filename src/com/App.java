@@ -1,3 +1,4 @@
+package com;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,10 +19,10 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 public class App {
-	private static final String CSV_FILE = "error_symbols.csv";
-	private static final String SAVE_FILE = "save_eraseposition.txt";
+	private static final String CSV_FILE = "temp/error_symbols.csv";
+	private static final String SAVE_FILE = "temp/save_eraseposition.txt";
 	private static final String ORIGINAL_IMAGE_PATH = "data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "data/resourse/denoised/9.9/";
+	private static final String DENOISED_IMAGE_PATH = "data/resourse/denoised/10.5/";
 
 	public static void main(String[] args) {
 		int successfulDecodes = 0;

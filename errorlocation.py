@@ -60,20 +60,17 @@ def main():
 
     for i in range(200):
         print(i)
-        original_path = os.path.join(directory, 'original', f'{i}.png')
-        denoised_path = os.path.join(directory, 'denoised', '9.9', f'{i}.png')
-        process_image(original_path, denoised_path)
+        denoised_path = os.path.join(directory, 'denoised', '10.5', f'{i}.png')
+        process_image(denoised_path)
 
-def process_image(original_path, denoised_path):
+def process_image(denoised_path):
     # 画像を読み込む
-    original_image = cv2.imread(original_path, cv2.IMREAD_GRAYSCALE)
     denoised_image = cv2.imread(denoised_path, cv2.IMREAD_GRAYSCALE)
 
     # 29×29にリサイズ
-    resized_original_image = cv2.resize(original_image, (29, 29))
     resized_denoised_image = cv2.resize(denoised_image, (29, 29))
 
-    moderror_count, symerror_count, error_symbols = calculate_errors(resized_original_image, resized_denoised_image)
+    moderror_count, symerror_count, error_symbols = calculate_errors(resized_denoised_image)
 
     # エラーカウントをリストに追加
     moderror_counts.append(moderror_count)
@@ -88,7 +85,7 @@ def process_image(original_path, denoised_path):
     # Error SymbolsをCSVファイルに保存
     save_error_symbols_to_csv(error_symbols)
 
-def calculate_errors(original_image, denoised_image):
+def calculate_errors(denoised_image):
     moderror_count = 0
     symerror_count = 0
     counted_symbols = set()
@@ -97,7 +94,6 @@ def calculate_errors(original_image, denoised_image):
     for i in range(29):
         for j in range(29):
             denoised_value = denoised_image[i, j]
-            original_value = original_image[i, j]
 
             if (81 <= denoised_value <= 139):
                 moderror_count += 1
@@ -115,13 +111,13 @@ def calculate_errors(original_image, denoised_image):
     return moderror_count, symerror_count, error_symbols
 
 def save_error_symbols_to_csv(error_symbols):
-    csv_file_path = 'error_symbols.csv'
+    csv_file_path = 'temp/error_symbols.csv'
     with open(csv_file_path, mode='a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(error_symbols)
 
 def clear_csv_file():
-    csv_file_path = 'error_symbols.csv'
+    csv_file_path = 'temp/error_symbols.csv'
     open(csv_file_path, 'w').close()
 
 if __name__ == "__main__":
