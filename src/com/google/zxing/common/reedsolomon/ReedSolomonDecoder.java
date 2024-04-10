@@ -69,6 +69,104 @@ public final class ReedSolomonDecoder {
    * @return the number of errors corrected
    * @throws ReedSolomonException if decoding fails for any reason
    */
+
+  ///// 消失訂正
+  public int erasedecodeWithECCount(int[] received, int[] eraseposition, int twoS) throws ReedSolomonException {
+    GenericGFPoly poly = new GenericGFPoly(field, received);
+
+    //// シンドロームの計算
+    int[] syndromeCoefficients = new int[twoS];
+    boolean noError = true;
+    for (int i = 0; i < twoS; i++) {
+      int eval = poly.evaluateAt(field.exp(i + field.getGeneratorBase()));
+      syndromeCoefficients[syndromeCoefficients.length - 1 - i] = eval;
+      if (eval != 0) {
+        noError = false;
+      }
+    }
+    if (noError) {
+      return 0;
+    }
+    GenericGFPoly syndrome = new GenericGFPoly(field, syndromeCoefficients);
+
+    //// 消失位置多項式λを構成
+    int erasenum = eraseposition.length;
+
+    // 消失位置多項式の因数を格納
+    int[][] erasepoly_factor = new int[erasenum][2];
+
+    // 消失位置は反転 exp..受信語の長さが10,消失位置が0ならば0→9
+    // シンドロームが反転して計算されるため
+    int eraseposition_reverse;
+
+    // 消失位置のべき乗を根に持つ因数を生成し逐次的にかける
+    int[] one = { 1 };
+    GenericGFPoly lamda = new GenericGFPoly(field, one);
+    for (int i = 0; i < erasenum; i++) {
+      eraseposition_reverse = received.length - 1 - eraseposition[i];
+      erasepoly_factor[i][0] = field.exp(eraseposition_reverse);
+      erasepoly_factor[i][1] = 1;
+      GenericGFPoly poly_factor = new GenericGFPoly(field, erasepoly_factor[i]);
+      lamda = lamda.multiply(poly_factor);
+    }
+
+    //// シンドローム×消失位置多項式(S(x)×λ(x):2t次以上の項は切り捨て)を計算
+    GenericGFPoly sramda = new GenericGFPoly(field, one);
+    sramda = sramda.multiply(syndrome);
+    sramda = sramda.multiply(lamda);
+    int[] sramda_array = new int[syndromeCoefficients.length];
+    GenericGFPoly sramda_unnder2t;
+    // System.out.print("sramda,sramdaarray:" + sramda.getDegree());
+    if (sramda.getDegree() < sramda_array.length - 1) {
+      sramda_unnder2t = sramda;
+
+    } else {
+      for (int i = 0; i < sramda_array.length; i++) {
+        // System.out.print(sramda.getDegree() + sramda_array.length - 1 - i);
+        sramda_array[i] = sramda.getCoefficient(sramda_array.length - 1 - i);
+      }
+      // System.out.println();
+      sramda_unnder2t = new GenericGFPoly(field, sramda_array);
+    }
+
+    //// ユークリッドアルゴリズムによって誤り位置多項式σと誤り、消失の大きさに関わるψを求める
+    GenericGFPoly[] sigmapsi = runEuclideanAlgorithm(field.buildMonomial(twoS, 1), sramda_unnder2t, twoS + erasenum);
+    GenericGFPoly sigma = sigmapsi[0];
+    GenericGFPoly psi = sigmapsi[1];
+
+    int[] errorLocations = findErrorLocations(sigma);
+    int[] eraseLocations = findErrorLocations(lamda);
+
+    int[] errorMagnitudes = findErrorMagnitudes(psi, errorLocations);
+    for (int i = 0; i < errorMagnitudes.length; i++) {
+      int lamda_inverse = lamda.evaluateAt(field.inverse(errorLocations[i]));
+      errorMagnitudes[i] = field.divide(lamda_inverse, errorMagnitudes[i]);
+    }
+
+    int[] eraseMagnitudes = findErrorMagnitudes(psi, eraseLocations);
+    for (int i = 0; i < eraseMagnitudes.length; i++) {
+      int sigma_inverse = sigma.evaluateAt(field.inverse(eraseLocations[i]));
+      eraseMagnitudes[i] = field.divide(sigma_inverse, eraseMagnitudes[i]);
+    }
+
+    for (int i = 0; i < errorLocations.length; i++) {
+      int errorpos = received.length - 1 - field.log(errorLocations[i]);
+      if (errorpos < 0) {
+        throw new ReedSolomonException("Bad error location");
+      }
+      received[errorpos] = GenericGF.addOrSubtract(received[errorpos], errorMagnitudes[i]);
+    }
+
+    for (int i = 0; i < eraseLocations.length; i++) {
+      int erasepos = received.length - 1 - field.log(eraseLocations[i]);
+      if (erasepos < 0) {
+        throw new ReedSolomonException("Bad error location");
+      }
+      received[erasepos] = GenericGF.addOrSubtract(received[erasepos], eraseMagnitudes[i]);
+    }
+    return errorLocations.length;
+  }
+
   public int decodeWithECCount(int[] received, int twoS) throws ReedSolomonException {
     GenericGFPoly poly = new GenericGFPoly(field, received);
     int[] syndromeCoefficients = new int[twoS];

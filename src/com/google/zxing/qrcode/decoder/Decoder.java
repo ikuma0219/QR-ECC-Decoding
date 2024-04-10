@@ -25,7 +25,13 @@ import com.google.zxing.common.reedsolomon.GenericGF;
 import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
 import com.google.zxing.common.reedsolomon.ReedSolomonException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  * <p>The main class which implements QR Code decoding -- as opposed to locating and extracting
@@ -179,8 +185,10 @@ public final class Decoder {
       codewordsInts[i] = codewordBytes[i] & 0xFF;
     }
     int errorsCorrected = 0;
+    int[] eraseposition = getErasePosition();
     try {
-      errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
+      errorsCorrected = rsDecoder.erasedecodeWithECCount(codewordsInts, eraseposition, codewordBytes.length - numDataCodewords);
+      // errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
     } catch (ReedSolomonException ignored) {
       throw ChecksumException.getChecksumInstance();
     }
@@ -192,4 +200,23 @@ public final class Decoder {
     return errorsCorrected;
   }
 
+//追記(2024/3/19)
+  public static int[] getErasePosition() {
+    List<Integer> rowData = new ArrayList<>();
+    try {
+        FileReader reader = new FileReader("temp/save_eraseposition.txt");
+        BufferedReader bufferedReader = new BufferedReader(reader);
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            String[] values = line.split(",");
+            for (String value : values) {
+                rowData.add(Integer.parseInt(value.trim()));
+            }
+        }
+        reader.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    return rowData.stream().mapToInt(Integer::intValue).toArray();
+  }
 }
