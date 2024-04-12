@@ -1,1 +1,1 @@
-# QR-ML-Coding 
+# QR-ECC-Decoding 
