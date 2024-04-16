@@ -22,7 +22,7 @@ public class Main {
 	private static final String CSV_FILE = "app/temp/error_symbols.csv";
 	private static final String SAVE_FILE = "app/temp/save_eraseposition.txt";
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/9.5/";
+	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/10.5/";
 
 	public static void main(String[] args) {
 		int successfulDecodes = 0;
@@ -53,7 +53,7 @@ public class Main {
 		}
 		System.out.println("Total successful decodes: " + successfulDecodes);
 	}
-
+	// CSVファイルから消失シンボルのデータをとる
 	private static String getErrorSymbol(int targetRow) throws IOException {
 		try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
 			String line;
@@ -70,7 +70,7 @@ public class Main {
 		}
 		return null;
 	}
-
+	// QRコードのデコード
 	private static String decodeQRCode(BufferedImage image, String errorSymbol, int i)
 			throws NotFoundException, ChecksumException, FormatException {
 		LuminanceSource source = new BufferedImageLuminanceSource(image);

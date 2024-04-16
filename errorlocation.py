@@ -55,12 +55,12 @@ symerror_counts = []
 
 def main():
     # directory = "C:\\Users\\ikuma\\QR-decoding\\data\\resourse" #windows
-    directory = "/home/higuchi/QR-decoding/app/data/resourse" #Ubuntu
+    directory = "/home/higuchi/QR-ECC-Decoding/app/data/resourse" #Ubuntu
     clear_csv_file()
 
     for i in range(200):
         print(i)
-        denoised_path = os.path.join(directory, 'denoised', '9.5', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '10.5', f'{i}.png')
         process_image(denoised_path)
 
 def process_image(denoised_path):
