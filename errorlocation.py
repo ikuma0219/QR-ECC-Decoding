@@ -55,7 +55,7 @@ symerror_counts = []
 
 def main():
     # directory = "C:\\Users\\ikuma\\QR-decoding\\data\\resourse" #windows
-    directory = "/home/higuchi/QR-decoding/data/resourse" #Ubuntu
+    directory = "/home/higuchi/QR-ECC-Decoding/app/data/resourse" #Ubuntu
     clear_csv_file()
 
     for i in range(200):
@@ -111,13 +111,13 @@ def calculate_errors(denoised_image):
     return moderror_count, symerror_count, error_symbols
 
 def save_error_symbols_to_csv(error_symbols):
-    csv_file_path = 'temp/error_symbols.csv'
+    csv_file_path = 'app/temp/error_symbols.csv'
     with open(csv_file_path, mode='a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(error_symbols)
 
 def clear_csv_file():
-    csv_file_path = 'temp/error_symbols.csv'
+    csv_file_path = 'app/temp/error_symbols.csv'
     open(csv_file_path, 'w').close()
 
 if __name__ == "__main__":
