@@ -60,30 +60,23 @@ def main():
 
     for i in range(200):
         print(i)
-        denoised_path = os.path.join(directory, 'denoised', '10.5', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '9.9', f'{i}.png')
         process_image(denoised_path)
 
 def process_image(denoised_path):
-    # 画像を読み込む
     denoised_image = cv2.imread(denoised_path, cv2.IMREAD_GRAYSCALE)
-
-    # 29×29にリサイズ
     resized_denoised_image = cv2.resize(denoised_image, (29, 29))
-
     moderror_count, symerror_count, error_symbols = calculate_errors(resized_denoised_image)
 
-    # エラーカウントをリストに追加
     moderror_counts.append(moderror_count)
     symerror_counts.append(symerror_count)
 
-    # エラーカウントを表示
-    print(f"error_module for {moderror_count}")
-    print(f"error_symbol for {symerror_count}")
-    print(f"Error Symbols: {error_symbols}")
-    print()
+    top_10_error_symbols = find_top_10_error_symbols(resized_denoised_image, error_symbols)
+    save_error_symbols_to_csv(top_10_error_symbols)
 
-    # Error SymbolsをCSVファイルに保存
-    save_error_symbols_to_csv(error_symbols)
+    print_error_summary(resized_denoised_image, top_10_error_symbols)
+
+    return resized_denoised_image, top_10_error_symbols
 
 def calculate_errors(denoised_image):
     moderror_count = 0
@@ -94,21 +87,36 @@ def calculate_errors(denoised_image):
     for i in range(29):
         for j in range(29):
             denoised_value = denoised_image[i, j]
-
-            if (81 <= denoised_value <= 139):
+            if 100 <= denoised_value <= 160:
                 moderror_count += 1
-
-                # シンボルの各座標を確認
                 for symbol_index, symbol in enumerate(symbols):
                     if (i, j) in symbol and symbol_index not in counted_symbols:
                         symerror_count += 1
                         counted_symbols.add(symbol_index)
                         error_symbols.append(symbol_index)
 
-    # 次の繰り返しのためにセットをクリア
     counted_symbols.clear()
 
     return moderror_count, symerror_count, error_symbols
+
+def find_top_10_error_symbols(resized_denoised_image, error_symbols):
+    symbol_moderror_counts = []
+    for symbol_index in error_symbols:
+        symbol_moderror_count = count_symbol_moderror(resized_denoised_image, symbol_index)
+        symbol_moderror_counts.append((symbol_index, symbol_moderror_count))
+
+    symbol_moderror_counts.sort(key=lambda x: x[1], reverse=True)
+    return [symbol[0] for symbol in symbol_moderror_counts[:10]]
+
+def count_symbol_moderror(resized_denoised_image, symbol_index):
+    symbol = symbols[symbol_index]
+    symbol_moderror_count = 0
+    for coord in symbol:
+        i, j = coord
+        denoised_value = resized_denoised_image[i, j]
+        if 100 <= denoised_value <= 160:
+            symbol_moderror_count += 1
+    return symbol_moderror_count
 
 def save_error_symbols_to_csv(error_symbols):
     csv_file_path = 'app/temp/error_symbols.csv'
@@ -119,6 +127,13 @@ def save_error_symbols_to_csv(error_symbols):
 def clear_csv_file():
     csv_file_path = 'app/temp/error_symbols.csv'
     open(csv_file_path, 'w').close()
+
+def print_error_summary(resized_denoised_image, top_10_error_symbols):
+    for symbol_index in top_10_error_symbols:
+        symbol_moderror_count = count_symbol_moderror(resized_denoised_image, symbol_index)
+        print(f"moderror_count for symbol {symbol_index}: {symbol_moderror_count}")
+    print(f"Top 10 error symbols: {top_10_error_symbols}")
+    print()
 
 if __name__ == "__main__":
     main()
