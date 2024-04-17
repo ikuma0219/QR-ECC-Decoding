@@ -60,63 +60,39 @@ def main():
 
     for i in range(200):
         print(i)
-        denoised_path = os.path.join(directory, 'denoised', '9.9', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '10.5', f'{i}.png')
         process_image(denoised_path)
 
 def process_image(denoised_path):
     denoised_image = cv2.imread(denoised_path, cv2.IMREAD_GRAYSCALE)
     resized_denoised_image = cv2.resize(denoised_image, (29, 29))
-    moderror_count, symerror_count, error_symbols = calculate_errors(resized_denoised_image)
+    output_symbols = find_symbols_with_top_brightness(resized_denoised_image)
+    print(output_symbols)
+    save_error_symbols_to_csv(output_symbols)
 
-    moderror_counts.append(moderror_count)
-    symerror_counts.append(symerror_count)
-
-    top_10_error_symbols = find_top_10_error_symbols(resized_denoised_image, error_symbols)
-    save_error_symbols_to_csv(top_10_error_symbols)
-
-    print_error_summary(resized_denoised_image, top_10_error_symbols)
-
-    return resized_denoised_image, top_10_error_symbols
-
-def calculate_errors(denoised_image):
-    moderror_count = 0
-    symerror_count = 0
-    counted_symbols = set()
-    error_symbols = []
-
+def find_symbols_with_top_brightness(denoised_image):
+    brightness_values = []
     for i in range(29):
         for j in range(29):
-            denoised_value = denoised_image[i, j]
-            if 100 <= denoised_value <= 160:
-                moderror_count += 1
-                for symbol_index, symbol in enumerate(symbols):
-                    if (i, j) in symbol and symbol_index not in counted_symbols:
-                        symerror_count += 1
-                        counted_symbols.add(symbol_index)
-                        error_symbols.append(symbol_index)
+            brightness = denoised_image[i, j]
+            brightness_values.append(((i, j), brightness))
+    brightness_values.sort(key=lambda x: abs(130 - x[1]))  # Sort by brightness proximity to 125
 
-    counted_symbols.clear()
+    output_symbols = []
+    symbol_counts = {symbol_index: 0 for symbol_index in range(len(symbols))}
 
-    return moderror_count, symerror_count, error_symbols
+    for (i, j), brightness in brightness_values:
+        for symbol_index, symbol in enumerate(symbols):
+            if (i, j) in symbol and symbol_counts[symbol_index] < 10 and symbol_index not in output_symbols:
+                output_symbols.append(symbol_index)
+                symbol_counts[symbol_index] += 1
+                break
+        if len(output_symbols) >= 10:
+            break
+    for symbol_index in output_symbols:
+        symbol_counts[symbol_index] += 1
 
-def find_top_10_error_symbols(resized_denoised_image, error_symbols):
-    symbol_moderror_counts = []
-    for symbol_index in error_symbols:
-        symbol_moderror_count = count_symbol_moderror(resized_denoised_image, symbol_index)
-        symbol_moderror_counts.append((symbol_index, symbol_moderror_count))
-
-    symbol_moderror_counts.sort(key=lambda x: x[1], reverse=True)
-    return [symbol[0] for symbol in symbol_moderror_counts[:10]]
-
-def count_symbol_moderror(resized_denoised_image, symbol_index):
-    symbol = symbols[symbol_index]
-    symbol_moderror_count = 0
-    for coord in symbol:
-        i, j = coord
-        denoised_value = resized_denoised_image[i, j]
-        if 100 <= denoised_value <= 160:
-            symbol_moderror_count += 1
-    return symbol_moderror_count
+    return output_symbols
 
 def save_error_symbols_to_csv(error_symbols):
     csv_file_path = 'app/temp/error_symbols.csv'
@@ -128,12 +104,5 @@ def clear_csv_file():
     csv_file_path = 'app/temp/error_symbols.csv'
     open(csv_file_path, 'w').close()
 
-def print_error_summary(resized_denoised_image, top_10_error_symbols):
-    for symbol_index in top_10_error_symbols:
-        symbol_moderror_count = count_symbol_moderror(resized_denoised_image, symbol_index)
-        print(f"moderror_count for symbol {symbol_index}: {symbol_moderror_count}")
-    print(f"Top 10 error symbols: {top_10_error_symbols}")
-    print()
-
 if __name__ == "__main__":
-    main()
+        main()

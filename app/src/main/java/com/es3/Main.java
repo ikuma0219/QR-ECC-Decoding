@@ -22,7 +22,7 @@ public class Main {
 	private static final String CSV_FILE = "app/temp/error_symbols.csv";
 	private static final String SAVE_FILE = "app/temp/save_eraseposition.txt";
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/9.9/";
+	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/10.5/";
 
 	public static void main(String[] args) {
 		int successfulDecodes = 0;
