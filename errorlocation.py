@@ -60,7 +60,7 @@ def main():
 
     for i in range(200):
         print(i)
-        denoised_path = os.path.join(directory, 'denoised', '9.5', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '9.0', f'{i}.png')
         process_image(denoised_path)
 
 def process_image(denoised_path):
@@ -76,7 +76,7 @@ def find_symbols_with_top_brightness(denoised_image):
         for j in range(29):
             brightness = denoised_image[i, j]
             brightness_values.append(((i, j), brightness))
-    brightness_values.sort(key=lambda x: abs(130 - x[1]))  # Sort by brightness proximity to 125
+    brightness_values.sort(key=lambda x: abs(128 - x[1]))  # Sort by brightness proximity to 125
 
     output_symbols = []
     symbol_counts = {symbol_index: 0 for symbol_index in range(len(symbols))}

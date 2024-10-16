@@ -4,22 +4,42 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class GetErrorSymbol {
     // CSVファイルから消失シンボルのデータをとる
     private static final String CSV_FILE = "app/temp/error_symbols.csv";
     private static final String SAVE_FILE = "app/temp/save_eraseposition.txt";
 
-    public static String getErrorSymbol(int targetRow) throws IOException {
+    public static String getErrorSymbol(int targetRow, int j) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
             String line;
             int currentRow = 0;
+
             while ((line = reader.readLine()) != null) {
                 if (currentRow == targetRow) {
+                    // 行をカンマで分割して配列にする
+                    String[] elements = line.split(",");
+
+                    // 削除する要素の数を計算（jが1増えるごとに2つ削除）
+                    System.out.println(j);
+                    int elementsToRemove = 2 * j;
+
+                    // 要素数が負にならないように調整
+                    int newLength = Math.max(0, elements.length - elementsToRemove);
+
+                    // 残りの要素で新しい配列を作成
+                    String[] trimmedElements = Arrays.copyOf(elements, newLength);
+
+                    // 残った要素をカンマで結合して新しい文字列を作成
+                    String newLine = String.join(",", trimmedElements);
+
+                    // 新しい行をファイルに書き込む
                     try (FileWriter writer = new FileWriter(SAVE_FILE)) {
-                        writer.write(line);
+                        writer.write(newLine);
                     }
-                    return line;
+                    System.out.println(newLine);
+                    return newLine;
                 }
                 currentRow++;
             }
