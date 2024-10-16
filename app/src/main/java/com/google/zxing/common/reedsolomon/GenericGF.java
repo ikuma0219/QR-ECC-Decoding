@@ -168,8 +168,8 @@
    //@return b/a
    int divide(int a, int b) {
      if (a == 0) {
-       throw new ArithmeticException();
-       // return Integer.MIN_VALUE;
+      //  throw new ArithmeticException();
+       return Integer.MIN_VALUE;
      }
      if (b == 0) {
        return 0;

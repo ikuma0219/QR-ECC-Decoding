@@ -164,6 +164,19 @@
        }
        received[erasepos] = GenericGF.addOrSubtract(received[erasepos], eraseMagnitudes[i]);
      }
+     GenericGFPoly poly1 = new GenericGFPoly(field, received);
+     int[] syndromeCoefficients1 = new int[twoS];
+     boolean noError1 = true;
+     for (int i = 0; i < twoS; i++) {
+       int eval = poly1.evaluateAt(field.exp(i + field.getGeneratorBase()));
+       syndromeCoefficients1[syndromeCoefficients.length - 1 - i] = eval;
+       if (eval != 0) {
+         noError1 = false;
+       }
+     }
+     if (!noError1) {
+      throw new ReedSolomonException("Bad error location");
+     }
      return errorLocations.length;
    }
  

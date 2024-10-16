@@ -60,55 +60,39 @@ def main():
 
     for i in range(200):
         print(i)
-        denoised_path = os.path.join(directory, 'denoised', '10.5', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '9.5', f'{i}.png')
         process_image(denoised_path)
 
 def process_image(denoised_path):
-    # 画像を読み込む
     denoised_image = cv2.imread(denoised_path, cv2.IMREAD_GRAYSCALE)
-
-    # 29×29にリサイズ
     resized_denoised_image = cv2.resize(denoised_image, (29, 29))
+    output_symbols = find_symbols_with_top_brightness(resized_denoised_image)
+    print(output_symbols)
+    save_error_symbols_to_csv(output_symbols)
 
-    moderror_count, symerror_count, error_symbols = calculate_errors(resized_denoised_image)
-
-    # エラーカウントをリストに追加
-    moderror_counts.append(moderror_count)
-    symerror_counts.append(symerror_count)
-
-    # エラーカウントを表示
-    print(f"error_module for {moderror_count}")
-    print(f"error_symbol for {symerror_count}")
-    print(f"Error Symbols: {error_symbols}")
-    print()
-
-    # Error SymbolsをCSVファイルに保存
-    save_error_symbols_to_csv(error_symbols)
-
-def calculate_errors(denoised_image):
-    moderror_count = 0
-    symerror_count = 0
-    counted_symbols = set()
-    error_symbols = []
-
+def find_symbols_with_top_brightness(denoised_image):
+    brightness_values = []
     for i in range(29):
         for j in range(29):
-            denoised_value = denoised_image[i, j]
+            brightness = denoised_image[i, j]
+            brightness_values.append(((i, j), brightness))
+    brightness_values.sort(key=lambda x: abs(130 - x[1]))  # Sort by brightness proximity to 125
 
-            if (81 <= denoised_value <= 139):
-                moderror_count += 1
+    output_symbols = []
+    symbol_counts = {symbol_index: 0 for symbol_index in range(len(symbols))}
 
-                # シンボルの各座標を確認
-                for symbol_index, symbol in enumerate(symbols):
-                    if (i, j) in symbol and symbol_index not in counted_symbols:
-                        symerror_count += 1
-                        counted_symbols.add(symbol_index)
-                        error_symbols.append(symbol_index)
+    for (i, j), brightness in brightness_values:
+        for symbol_index, symbol in enumerate(symbols):
+            if (i, j) in symbol and symbol_counts[symbol_index] < 10 and symbol_index not in output_symbols:
+                output_symbols.append(symbol_index)
+                symbol_counts[symbol_index] += 1
+                break
+        if len(output_symbols) >= 10:
+            break
+    for symbol_index in output_symbols:
+        symbol_counts[symbol_index] += 1
 
-    # 次の繰り返しのためにセットをクリア
-    counted_symbols.clear()
-
-    return moderror_count, symerror_count, error_symbols
+    return output_symbols
 
 def save_error_symbols_to_csv(error_symbols):
     csv_file_path = 'app/temp/error_symbols.csv'
@@ -121,4 +105,4 @@ def clear_csv_file():
     open(csv_file_path, 'w').close()
 
 if __name__ == "__main__":
-    main()
+        main()

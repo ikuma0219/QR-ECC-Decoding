@@ -1,28 +1,20 @@
 package com.es3;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-import com.google.zxing.Binarizer;
-import com.google.zxing.BinaryBitmap;
+import com.es3.libs.Decode;
+import com.es3.libs.GetErrorSymbol;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
-import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.qrcode.QRCodeReader;
+
 
 public class Main {
-	private static final String CSV_FILE = "app/temp/error_symbols.csv";
-	private static final String SAVE_FILE = "app/temp/save_eraseposition.txt";
+
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/10.5/";
+	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/9.5/";
 
 	public static void main(String[] args) {
 		int successfulDecodes = 0;
@@ -34,10 +26,11 @@ public class Main {
 				BufferedImage originalImage = ImageIO.read(originalImageFile);
 				BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
 
-				String errorSymbol = getErrorSymbol(i);
+				// txt に i 行の消失位置を保存
+				GetErrorSymbol.getErrorSymbol(i);
 
-				String originalData = decodeQRCode(originalImage, errorSymbol, i);
-				String denoisedData = decodeQRCode(denoisedImage, errorSymbol, i);
+				String originalData = Decode.decodeQRCode(originalImage);
+				String denoisedData = Decode.decodeQRCode(denoisedImage);
 
 				System.out.println(i + ".png " + originalData + " " + denoisedData);
 
@@ -52,33 +45,5 @@ public class Main {
 			}
 		}
 		System.out.println("Total successful decodes: " + successfulDecodes);
-	}
-	// CSVファイルから消失シンボルのデータをとる
-	private static String getErrorSymbol(int targetRow) throws IOException {
-		try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
-			String line;
-			int currentRow = 0;
-			while ((line = reader.readLine()) != null) {
-				if (currentRow == targetRow) {
-					try (FileWriter writer = new FileWriter(SAVE_FILE)) {
-						writer.write(line);
-					}
-					return line;
-				}
-				currentRow++;
-			}
-		}
-		return null;
-	}
-	// QRコードのデコード
-	private static String decodeQRCode(BufferedImage image, String errorSymbol, int i)
-			throws NotFoundException, ChecksumException, FormatException {
-		LuminanceSource source = new BufferedImageLuminanceSource(image);
-		Binarizer binarizer = new HybridBinarizer(source);
-		BinaryBitmap bitmap = new BinaryBitmap(binarizer);
-		QRCodeReader reader = new QRCodeReader();
-		Result result = reader.decode(bitmap);
-		String data = result.getText();
-		return data;
 	}
 }
