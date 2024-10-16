@@ -26,10 +26,11 @@ public class Main {
 				BufferedImage originalImage = ImageIO.read(originalImageFile);
 				BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
 
-				String errorSymbol = GetErrorSymbol.getErrorSymbol(i);
+				// txt に i 行の消失位置を保存
+				GetErrorSymbol.getErrorSymbol(i);
 
-				String originalData = Decode.decodeQRCode(originalImage, errorSymbol, i);
-				String denoisedData = Decode.decodeQRCode(denoisedImage, errorSymbol, i);
+				String originalData = Decode.decodeQRCode(originalImage);
+				String denoisedData = Decode.decodeQRCode(denoisedImage);
 
 				System.out.println(i + ".png " + originalData + " " + denoisedData);
 

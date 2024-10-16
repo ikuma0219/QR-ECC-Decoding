@@ -14,7 +14,7 @@ import com.google.zxing.qrcode.QRCodeReader;
 
 
 public class Decode {
-    	public static String decodeQRCode(BufferedImage image, String errorSymbol, int i)
+    	public static String decodeQRCode(BufferedImage image)
 			throws NotFoundException, ChecksumException, FormatException {
 		LuminanceSource source = new BufferedImageLuminanceSource(image);
 		Binarizer binarizer = new HybridBinarizer(source);
