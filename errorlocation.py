@@ -50,12 +50,8 @@ symbols = [
     [(11, 2), (12, 3), (12, 2), (13, 3), (13, 2), (14, 3), (14, 2), (15, 3)],
 ]
 
-moderror_counts = []
-symerror_counts = []
-
 def main():
-    # directory = "C:\\Users\\ikuma\\QR-decoding\\data\\resourse" #windows
-    directory = "/home/higuchi/QR-ECC-Decoding/app/data/resourse" #Ubuntu
+    directory = "/home/higuchi/QR-ECC-Decoding/app/data/resourse" 
     clear_csv_file()
 
     for i in range(200):

@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GetErasePosition {
+public class ErasePositionReader {
     // 追記(2024/3/19) 消失位置を得る
-    public static int[] getErasePosition() {
-        List<Integer> rowData = new ArrayList<>();
+    public static int[] readErasePositionsFromTxtFile() {
+        List<Integer> erasePositions = new ArrayList<>();
         try {
             FileReader reader = new FileReader("app/temp/target_eraseposition.txt");
             BufferedReader bufferedReader = new BufferedReader(reader);
@@ -17,13 +17,13 @@ public class GetErasePosition {
             while ((line = bufferedReader.readLine()) != null) {
                 String[] values = line.split(",");
                 for (String value : values) {
-                    rowData.add(Integer.parseInt(value.trim()));
+                    erasePositions.add(Integer.parseInt(value.trim()));
                 }
             }
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return rowData.stream().mapToInt(Integer::intValue).toArray();
+        return erasePositions.stream().mapToInt(Integer::intValue).toArray();
     }
 }

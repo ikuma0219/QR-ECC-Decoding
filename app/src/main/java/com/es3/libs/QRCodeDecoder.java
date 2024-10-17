@@ -13,8 +13,8 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
 
-public class Decode {
-    	public static String decodeQRCode(BufferedImage image)
+public class QRCodeDecoder {
+    	public static String decode(BufferedImage image)
 			throws NotFoundException, ChecksumException, FormatException {
 		LuminanceSource source = new BufferedImageLuminanceSource(image);
 		Binarizer binarizer = new HybridBinarizer(source);

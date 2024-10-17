@@ -6,9 +6,9 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import com.es3.libs.Decode;
-import com.es3.libs.EraseSymbolList;
-import com.es3.libs.csv_to_txt;
+import com.es3.libs.QRCodeDecoder;
+import com.es3.libs.ErasePositionWriter;
+import com.es3.libs.CsvToTxtConverter;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
@@ -16,63 +16,64 @@ import com.google.zxing.NotFoundException;
 public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/9.8/";
+	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
+	private static final String NOISE_LEVEL = "9.8";
+	private static final int MAX_TRIES = 5;
 
-	public static void main(String[] args) throws NotFoundException, IOException {
+	public static void main(String[] args) throws IOException, NotFoundException {
 		int successfulDecodes = 0;
-		EraseSymbolList.clearCsvFile();
-		// 輝度値による消失シンボル推定
-		EraseSymbolList.eraseSymbolList();
+
+		// initializeErasePosition();
+
 		for (int i = 0; i < 200; i++) {
-			int j = 0;
-			String denoisedData = null;
 			String originalData = null;
-			while (true) {
-				try {
-					File originalImageFile = new File(ORIGINAL_IMAGE_PATH + i + ".png");
-					File denoisedImageFile = new File(DENOISED_IMAGE_PATH + i + ".png");
-
-					BufferedImage originalImage = ImageIO.read(originalImageFile);
-					BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
-
-					// originalDataは固定値なので、最初に取得しておく
-					originalData = Decode.decodeQRCode(originalImage);
-
-					// denoisedDataがoriginalDataと一致するまでループ
-
-					// 現在のjに基づいて消失位置を取得
-					csv_to_txt.getErasePosiotion_from_targetRow(i, j);
-
-					// denoisedDataをデコード
-					denoisedData = Decode.decodeQRCode(denoisedImage);
-					System.out.println(denoisedData);
-
-					// denoisedDataがnullでない、かつoriginalDataと一致すればループを抜ける
-					if (denoisedData != null && denoisedData.equals(originalData)) {
-						// デコード成功した場合の処理
-						System.out.println(i + ".png " + originalData + " " + denoisedData + " 復号成功！！！");
-						successfulDecodes++;
-						break;
-					}
-				} catch (IOException e) {
-					System.err.println("Error reading image: " + e.getMessage());
-				} catch (NotFoundException e) {
-					System.err
-							.println("NotFoundException " + e.getMessage());
-				} catch (ChecksumException e) {
-					System.err
-							.println("ChecksumException " + e.getMessage());
-				} catch (FormatException e) {
-					System.err.println("FormatException " + e.getMessage());
-				}
-				if (j == 5) {
-					System.out.println(i + ".png  " + "jが5に達したためループを終了します。");
-					break;
-				}
-				j++;
+			try {
+				BufferedImage originalImage = loadImage(ORIGINAL_IMAGE_PATH + i + ".png");
+				originalData = QRCodeDecoder.decode(originalImage);
+			} catch (IOException | NotFoundException | ChecksumException | FormatException e) {
+				continue; // エラーが発生した場合、次の画像へ
 			}
 
+			if (attemptDenoisedDecoding(i, originalData)) {
+				successfulDecodes++;
+			}
 		}
 		System.out.println("Total successful decodes: " + successfulDecodes);
+	}
+
+	private static void initializeErasePosition() throws NotFoundException, IOException {
+		ErasePositionWriter.clearCsvFile(); // CSVファイルのクリア
+		ErasePositionWriter.eraseSymbolList(NOISE_LEVEL); // 輝度値による消失シンボル推定
+	}
+
+	// デノイズされた画像を試行してデコード
+	private static boolean attemptDenoisedDecoding(int index, String originalData) {
+		for (int j = 0; j <= MAX_TRIES; j++) {
+			try {
+				CsvToTxtConverter.processRowAndSaveToFile(index, j); // 消失位置を取得
+
+				BufferedImage denoisedImage = loadImage(DENOISED_IMAGE_PATH + NOISE_LEVEL + "/" + index + ".png");
+				String denoisedData = QRCodeDecoder.decode(denoisedImage);
+
+				// デコード成功かチェック
+				if (denoisedData != null && denoisedData.equals(originalData)) {
+					System.out.println(index + ".png: " + denoisedData + " 復号成功！！！");
+					return true;
+				}
+			} catch (IOException | NotFoundException | ChecksumException | FormatException e) {
+			}
+
+			if (j == MAX_TRIES) {
+				System.out.println(index + ".png: jが5に達したためループを終了します。");
+				break;
+			}
+		}
+		return false;
+	}
+
+	// 画像ファイルを読み込む
+	private static BufferedImage loadImage(String filePath) throws IOException {
+		File imageFile = new File(filePath);
+		return ImageIO.read(imageFile);
 	}
 }

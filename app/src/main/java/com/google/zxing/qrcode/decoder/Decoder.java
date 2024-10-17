@@ -16,7 +16,7 @@
 
  package com.google.zxing.qrcode.decoder;
 
- import com.es3.libs.GetErasePosition;
+ import com.es3.libs.ErasePositionReader;
 import com.google.zxing.ChecksumException;
  import com.google.zxing.DecodeHintType;
  import com.google.zxing.FormatException;
@@ -180,7 +180,7 @@ import com.google.zxing.ChecksumException;
        codewordsInts[i] = codewordBytes[i] & 0xFF;
      }
      int errorsCorrected = 0;
-     int[] eraseposition = GetErasePosition.getErasePosition();
+     int[] eraseposition = ErasePositionReader.readErasePositionsFromTxtFile();
      try {
      //追記(2024/3/19)　消失訂正アルゴリズムへ
        errorsCorrected = rsDecoder.erasedecodeWithECCount(codewordsInts, eraseposition, codewordBytes.length - numDataCodewords);

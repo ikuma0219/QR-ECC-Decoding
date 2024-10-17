@@ -19,10 +19,10 @@ import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 
-public class EraseSymbolList {
-    private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/9.8/";
+public class ErasePositionWriter {
+    private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
 
-    public static void eraseSymbolList() throws IOException, NotFoundException {
+    public static void eraseSymbolList(String noiseLevel) throws IOException, NotFoundException {
 
         List<int[][]> symbols = new ArrayList<>();
         symbols.add(new int[][] { { 26, 26 }, { 26, 25 }, { 25, 26 }, { 25, 25 }, { 24, 26 }, { 24, 25 }, { 23, 26 }, { 23, 25 } });
@@ -72,7 +72,7 @@ public class EraseSymbolList {
 
         for (int i = 0; i < 200; i++) {
             try {
-                File denoisedImageFile = new File(DENOISED_IMAGE_PATH + i + ".png");
+                File denoisedImageFile = new File(DENOISED_IMAGE_PATH + noiseLevel + "/" + i + ".png");
                 BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
 
                 int newWidth = denoisedImage.getWidth() / 8;
