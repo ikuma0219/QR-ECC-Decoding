@@ -17,13 +17,13 @@ public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
 	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
-	private static final String NOISE_LEVEL = "9.8";
+	private static final String NOISE_LEVEL = "10.5";
 	private static final int MAX_TRIES = 5;
 
 	public static void main(String[] args) throws IOException, NotFoundException {
 		int successfulDecodes = 0;
 
-		// initializeErasePosition();
+		initializeErasePosition();
 
 		for (int i = 0; i < 200; i++) {
 			String originalData = null;

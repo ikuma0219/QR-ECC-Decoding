@@ -112,7 +112,7 @@ public class ErasePositionWriter {
         }
 
         // 輝度175に近い順にソート
-        brightnessValues.sort(Comparator.comparingInt(b -> Math.abs(175 - b.brightness)));
+        brightnessValues.sort(Comparator.comparingInt(b -> Math.abs(140 - b.brightness)));
 
         List<Integer> outputSymbols = new ArrayList<>();
         Map<Integer, Integer> symbolCounts = new HashMap<>();
