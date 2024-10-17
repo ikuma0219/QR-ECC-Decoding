@@ -6,12 +6,18 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import com.es3.libs.QRCodeDecoder;
 import com.es3.libs.ErasePositionWriter;
 import com.es3.libs.ErasePositionReader;
+import com.google.zxing.Binarizer;
+import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
+import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.QRCodeReader;
 
 public class Main {
 
@@ -29,9 +35,9 @@ public class Main {
 			String originalData = null;
 			try {
 				BufferedImage originalImage = loadImage(ORIGINAL_IMAGE_PATH + i + ".png");
-				originalData = QRCodeDecoder.decode(originalImage);
+				originalData = decode(originalImage);
 			} catch (IOException | NotFoundException | ChecksumException | FormatException e) {
-				continue; // エラーが発生した場合、次の画像へ
+				continue;
 			}
 
 			if (attemptDenoisedDecoding(i, originalData)) {
@@ -42,18 +48,18 @@ public class Main {
 	}
 
 	private static void initializeErasePosition() throws NotFoundException, IOException {
-		ErasePositionWriter.clearCsvFile(); // CSVファイルのクリア
-		ErasePositionWriter.eraseSymbolList(NOISE_LEVEL); // 輝度値による消失シンボル推定
+		ErasePositionWriter.clearCsvFile(); 
+		ErasePositionWriter.eraseSymbolList(NOISE_LEVEL);
 	}
 
-	// デノイズされた画像を試行してデコード
+	// デコード比較
 	private static boolean attemptDenoisedDecoding(int index, String originalData) {
 		for (int j = 0; j <= MAX_TRIES; j++) {
 			try {
 				ErasePositionReader.processRowAndSaveToFile(index, j); // 消失位置を取得
 
 				BufferedImage denoisedImage = loadImage(DENOISED_IMAGE_PATH + NOISE_LEVEL + "/" + index + ".png");
-				String denoisedData = QRCodeDecoder.decode(denoisedImage);
+				String denoisedData = decode(denoisedImage);
 
 				// デコード成功かチェック
 				if (denoisedData != null && denoisedData.equals(originalData)) {
@@ -75,5 +81,17 @@ public class Main {
 	private static BufferedImage loadImage(String filePath) throws IOException {
 		File imageFile = new File(filePath);
 		return ImageIO.read(imageFile);
+	}
+
+	// デコードロジック
+	public static String decode(BufferedImage image)
+			throws NotFoundException, ChecksumException, FormatException {
+		LuminanceSource source = new BufferedImageLuminanceSource(image);
+		Binarizer binarizer = new HybridBinarizer(source);
+		BinaryBitmap bitmap = new BinaryBitmap(binarizer);
+		QRCodeReader reader = new QRCodeReader();
+		Result result = reader.decode(bitmap);
+		String data = result.getText();
+		return data;
 	}
 }
