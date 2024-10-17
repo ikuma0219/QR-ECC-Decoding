@@ -26,13 +26,7 @@ import com.google.zxing.ChecksumException;
  import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
  import com.google.zxing.common.reedsolomon.ReedSolomonException;
  
- import java.util.ArrayList;
- import java.util.List;
  import java.util.Map;
- 
- import java.io.BufferedReader;
- import java.io.FileReader;
- import java.io.IOException;
  
  /**
   * <p>The main class which implements QR Code decoding -- as opposed to locating and extracting

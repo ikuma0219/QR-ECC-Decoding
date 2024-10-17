@@ -16,7 +16,7 @@
 
  package com.google.zxing.common.reedsolomon;
 
-import java.util.Arrays;
+// import java.util.Arrays;
  /**
   * <p>Implements Reed-Solomon decoding, as the name implies.</p>
   *
