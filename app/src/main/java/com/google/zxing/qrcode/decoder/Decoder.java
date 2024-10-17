@@ -16,7 +16,8 @@
 
  package com.google.zxing.qrcode.decoder;
 
- import com.google.zxing.ChecksumException;
+ import com.es3.libs.GetErasePosition;
+import com.google.zxing.ChecksumException;
  import com.google.zxing.DecodeHintType;
  import com.google.zxing.FormatException;
  import com.google.zxing.common.BitMatrix;
@@ -185,7 +186,7 @@
        codewordsInts[i] = codewordBytes[i] & 0xFF;
      }
      int errorsCorrected = 0;
-     int[] eraseposition = getErasePosition();
+     int[] eraseposition = GetErasePosition.getErasePosition();
      try {
      //追記(2024/3/19)　消失訂正アルゴリズムへ
        errorsCorrected = rsDecoder.erasedecodeWithECCount(codewordsInts, eraseposition, codewordBytes.length - numDataCodewords);
@@ -199,26 +200,6 @@
        codewordBytes[i] = (byte) codewordsInts[i];
      }
      return errorsCorrected;
-   }
- 
- //追記(2024/3/19) 消失位置を得る
-   public static int[] getErasePosition() {
-     List<Integer> rowData = new ArrayList<>();
-     try {
-         FileReader reader = new FileReader("app/temp/save_eraseposition.txt");
-         BufferedReader bufferedReader = new BufferedReader(reader);
-         String line;
-         while ((line = bufferedReader.readLine()) != null) {
-             String[] values = line.split(",");
-             for (String value : values) {
-                 rowData.add(Integer.parseInt(value.trim()));
-             }
-         }
-         reader.close();
-     } catch (IOException e) {
-         e.printStackTrace();
-     }
-     return rowData.stream().mapToInt(Integer::intValue).toArray();
    }
  }
  

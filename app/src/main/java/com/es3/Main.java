@@ -7,7 +7,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import com.es3.libs.Decode;
-import com.es3.libs.GetErrorSymbol;
+import com.es3.libs.SaveErasePosition_to_txt;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
@@ -19,7 +19,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		int successfulDecodes = 0;
-		for (int i = 0; i < 200; i++) {
+		for (int i = 193; i < 195; i++) {
 			int j = 0; // jを初期化
 			String denoisedData = null;
 			String originalData = null;
@@ -37,7 +37,7 @@ public class Main {
 				// denoisedDataがoriginalDataと一致するまでループ
 				while (true) {
 					// 現在のjに基づいて消失位置を取得
-					GetErrorSymbol.getErrorSymbol(i, j);
+					SaveErasePosition_to_txt.getErrorSymbol(i, j);
 
 					// denoisedDataをデコード
 					denoisedData = Decode.decodeQRCode(denoisedImage);

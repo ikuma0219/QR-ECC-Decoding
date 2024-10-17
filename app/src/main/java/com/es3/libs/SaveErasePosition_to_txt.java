@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class GetErrorSymbol {
+public class SaveErasePosition_to_txt {
     // CSVファイルから消失シンボルのデータをとる
     private static final String CSV_FILE = "app/temp/error_symbols.csv";
     private static final String SAVE_FILE = "app/temp/save_eraseposition.txt";
@@ -22,7 +22,7 @@ public class GetErrorSymbol {
                     String[] elements = line.split(",");
 
                     // 削除する要素の数を計算（jが1増えるごとに2つ削除）
-                    System.out.println(j);
+                    // System.out.println(j);
                     int elementsToRemove = 2 * j;
 
                     // 要素数が負にならないように調整
