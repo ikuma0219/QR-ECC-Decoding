@@ -15,7 +15,7 @@ import com.google.zxing.NotFoundException;
 public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/10/";
+	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/9.8/";
 
 	public static void main(String[] args) {
 		int successfulDecodes = 0;
@@ -41,11 +41,12 @@ public class Main {
 
 					// denoisedDataをデコード
 					denoisedData = Decode.decodeQRCode(denoisedImage);
+					System.out.println(denoisedData);
 
 					// denoisedDataがnullでない、かつoriginalDataと一致すればループを抜ける
 					if (denoisedData != null && denoisedData.equals(originalData)) {
 						// デコード成功した場合の処理
-						System.out.println(i + ".png " + originalData + " " + denoisedData);
+						System.out.println(i + ".png " + originalData + " " + denoisedData + " 復号成功！！！");
 						successfulDecodes++;
 						break;
 					}
@@ -61,7 +62,7 @@ public class Main {
 					System.err.println("FormatException " + e.getMessage());
 				}
 				if (j == 5) {
-					System.out.println(i + ".png  " + "jが4に達したためループを終了します。");
+					System.out.println(i + ".png  " + "jが5に達したためループを終了します。");
 					break;
 				}
 				j++;
