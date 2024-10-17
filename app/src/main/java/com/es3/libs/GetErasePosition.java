@@ -11,7 +11,7 @@ public class GetErasePosition {
     public static int[] getErasePosition() {
         List<Integer> rowData = new ArrayList<>();
         try {
-            FileReader reader = new FileReader("app/temp/save_eraseposition.txt");
+            FileReader reader = new FileReader("app/temp/target_eraseposition.txt");
             BufferedReader bufferedReader = new BufferedReader(reader);
             String line;
             while ((line = bufferedReader.readLine()) != null) {

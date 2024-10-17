@@ -6,12 +6,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class SaveErasePosition_to_txt {
+public class csv_to_txt {
     // CSVファイルから消失シンボルのデータをとる
-    private static final String CSV_FILE = "app/temp/error_symbols.csv";
-    private static final String SAVE_FILE = "app/temp/save_eraseposition.txt";
+    private static final String CSV_FILE = "app/temp/list_eraseposition.csv";
+    private static final String SAVE_FILE = "app/temp/target_eraseposition.txt";
 
-    public static String getErrorSymbol(int targetRow, int j) throws IOException {
+    public static String getErasePosiotion_from_targetRow(int targetRow, int j) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
             String line;
             int currentRow = 0;

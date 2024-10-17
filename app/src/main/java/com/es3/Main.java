@@ -7,7 +7,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import com.es3.libs.Decode;
-import com.es3.libs.SaveErasePosition_to_txt;
+import com.es3.libs.EraseSymbolList;
+import com.es3.libs.csv_to_txt;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
@@ -17,8 +18,11 @@ public class Main {
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
 	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/9.8/";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws NotFoundException, IOException {
 		int successfulDecodes = 0;
+		EraseSymbolList.clearCsvFile();
+		// 輝度値による消失シンボル推定
+		EraseSymbolList.eraseSymbolList();
 		for (int i = 0; i < 200; i++) {
 			int j = 0;
 			String denoisedData = null;
@@ -37,7 +41,7 @@ public class Main {
 					// denoisedDataがoriginalDataと一致するまでループ
 
 					// 現在のjに基づいて消失位置を取得
-					SaveErasePosition_to_txt.getErrorSymbol(i, j);
+					csv_to_txt.getErasePosiotion_from_targetRow(i, j);
 
 					// denoisedDataをデコード
 					denoisedData = Decode.decodeQRCode(denoisedImage);

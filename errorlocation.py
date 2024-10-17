@@ -95,13 +95,13 @@ def find_symbols_with_top_brightness(denoised_image):
     return output_symbols
 
 def save_error_symbols_to_csv(error_symbols):
-    csv_file_path = 'app/temp/error_symbols.csv'
+    csv_file_path = 'app/temp/list_eraseposition.csv'
     with open(csv_file_path, mode='a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(error_symbols)
 
 def clear_csv_file():
-    csv_file_path = 'app/temp/error_symbols.csv'
+    csv_file_path = 'app/temp/list_eraseposition.csv'
     open(csv_file_path, 'w').close()
 
 if __name__ == "__main__":
