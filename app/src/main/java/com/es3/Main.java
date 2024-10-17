@@ -8,7 +8,7 @@ import javax.imageio.ImageIO;
 
 import com.es3.libs.QRCodeDecoder;
 import com.es3.libs.ErasePositionWriter;
-import com.es3.libs.CsvToTxtConverter;
+import com.es3.libs.ErasePositionReader;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
@@ -50,7 +50,7 @@ public class Main {
 	private static boolean attemptDenoisedDecoding(int index, String originalData) {
 		for (int j = 0; j <= MAX_TRIES; j++) {
 			try {
-				CsvToTxtConverter.processRowAndSaveToFile(index, j); // 消失位置を取得
+				ErasePositionReader.processRowAndSaveToFile(index, j); // 消失位置を取得
 
 				BufferedImage denoisedImage = loadImage(DENOISED_IMAGE_PATH + NOISE_LEVEL + "/" + index + ".png");
 				String denoisedData = QRCodeDecoder.decode(denoisedImage);
