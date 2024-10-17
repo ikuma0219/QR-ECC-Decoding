@@ -15,27 +15,27 @@ import com.google.zxing.NotFoundException;
 public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/9.0/";
+	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/10/";
 
 	public static void main(String[] args) {
 		int successfulDecodes = 0;
-		for (int i = 193; i < 195; i++) {
-			int j = 0; // jを初期化
+		for (int i = 0; i < 200; i++) {
+			int j = 0;
 			String denoisedData = null;
 			String originalData = null;
+			while (true) {
+				try {
+					File originalImageFile = new File(ORIGINAL_IMAGE_PATH + i + ".png");
+					File denoisedImageFile = new File(DENOISED_IMAGE_PATH + i + ".png");
 
-			try {
-				File originalImageFile = new File(ORIGINAL_IMAGE_PATH + i + ".png");
-				File denoisedImageFile = new File(DENOISED_IMAGE_PATH + i + ".png");
+					BufferedImage originalImage = ImageIO.read(originalImageFile);
+					BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
 
-				BufferedImage originalImage = ImageIO.read(originalImageFile);
-				BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
+					// originalDataは固定値なので、最初に取得しておく
+					originalData = Decode.decodeQRCode(originalImage);
 
-				// originalDataは固定値なので、最初に取得しておく
-				originalData = Decode.decodeQRCode(originalImage);
+					// denoisedDataがoriginalDataと一致するまでループ
 
-				// denoisedDataがoriginalDataと一致するまでループ
-				while (true) {
 					// 現在のjに基づいて消失位置を取得
 					SaveErasePosition_to_txt.getErrorSymbol(i, j);
 
@@ -44,29 +44,29 @@ public class Main {
 
 					// denoisedDataがnullでない、かつoriginalDataと一致すればループを抜ける
 					if (denoisedData != null && denoisedData.equals(originalData)) {
+						// デコード成功した場合の処理
+						System.out.println(i + ".png " + originalData + " " + denoisedData);
+						successfulDecodes++;
 						break;
 					}
-
-					// 一致しない場合、jをインクリメントして再試行
-					j++;
+				} catch (IOException e) {
+					System.err.println("Error reading image: " + e.getMessage());
+				} catch (NotFoundException e) {
+					System.err
+							.println("NotFoundException " + e.getMessage());
+				} catch (ChecksumException e) {
+					System.err
+							.println("ChecksumException " + e.getMessage());
+				} catch (FormatException e) {
+					System.err.println("FormatException " + e.getMessage());
 				}
-
-				// デコード成功した場合の処理
-				System.out.println(i + ".png " + originalData + " " + denoisedData);
-
-				if (denoisedData != null && denoisedData.equals(originalData)) {
-					successfulDecodes++;
+				if (j == 5) {
+					System.out.println(i + ".png  " + "jが4に達したためループを終了します。");
+					break;
 				}
-
-			} catch (IOException e) {
-				System.err.println("Error reading image: " + e.getMessage());
-			} catch (NotFoundException e) {
-				System.err.println(i + ".png - NotFoundException: QR code not found in the image. " + e.getMessage());
-			} catch (ChecksumException e) {
-				System.err.println(i + ".png - ChecksumException: Data corrupted in the QR code. " + e.getMessage());
-			} catch (FormatException e) {
-				System.err.println(i + ".png - FormatException: QR code format invalid. " + e.getMessage());
+				j++;
 			}
+
 		}
 		System.out.println("Total successful decodes: " + successfulDecodes);
 	}

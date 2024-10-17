@@ -16,7 +16,6 @@
 
  package com.google.zxing.common.reedsolomon;
 
-// import java.util.Arrays;
  /**
   * <p>Implements Reed-Solomon decoding, as the name implies.</p>
   *
@@ -74,7 +73,6 @@
    ///// 消失訂正
    public int erasedecodeWithECCount(int[] received, int[] eraseposition, int twoS) throws ReedSolomonException {
      GenericGFPoly poly = new GenericGFPoly(field, received);
-    //  System.out.println(Arrays.toString(received));
  
      //// シンドロームの計算
      int[] syndromeCoefficients = new int[twoS];
@@ -93,7 +91,6 @@
  
      //// 消失位置多項式λを構成
      int erasenum = eraseposition.length;
-		//  System.out.println(erasenum);
  
      // 消失位置多項式の因数を格納
      int[][] erasepoly_factor = new int[erasenum][2];

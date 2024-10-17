@@ -38,7 +38,8 @@ public class SaveErasePosition_to_txt {
                     try (FileWriter writer = new FileWriter(SAVE_FILE)) {
                         writer.write(newLine);
                     }
-                    System.out.println(newLine);
+					System.out.println(j);
+					System.out.println(newLine);
                     return newLine;
                 }
                 currentRow++;

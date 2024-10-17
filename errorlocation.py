@@ -60,7 +60,7 @@ def main():
 
     for i in range(200):
         print(i)
-        denoised_path = os.path.join(directory, 'denoised', '9.0', f'{i}.png')
+        denoised_path = os.path.join(directory, 'denoised', '10', f'{i}.png')
         process_image(denoised_path)
 
 def process_image(denoised_path):
