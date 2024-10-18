@@ -22,7 +22,7 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 public class ErasePositionWriter {
     private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
 
-    public static void eraseSymbolList(String noiseLevel) throws IOException, NotFoundException {
+    public static void eraseSymbolList(String noiseLevel, int brightnessThreshold) throws IOException, NotFoundException {
 
         List<int[][]> symbols = new ArrayList<>();
         symbols.add(new int[][] { { 26, 26 }, { 26, 25 }, { 25, 26 }, { 25, 25 }, { 24, 26 }, { 24, 25 }, { 23, 26 }, { 23, 25 } });
@@ -91,7 +91,7 @@ public class ErasePositionWriter {
                         denoisedImageArray[y][x] = luminance; // 2次元配列に格納
                     }
                 }
-                List<Integer> errorSymbols = calculateErases(denoisedImageArray, symbols);
+                List<Integer> errorSymbols = calculateErases(denoisedImageArray, symbols, brightnessThreshold);
                 saveErrorSymbolsToCsv(errorSymbols);
 
             } catch (IOException e) {
@@ -100,7 +100,7 @@ public class ErasePositionWriter {
         }
     }
 
-    public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols) {
+    public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols, int brightnessThreshold) {
         List<PixelBrightness> brightnessValues = new ArrayList<>();
 
         // 輝度値とその座標を収集
@@ -112,7 +112,7 @@ public class ErasePositionWriter {
         }
 
         // 輝度175に近い順にソート
-        brightnessValues.sort(Comparator.comparingInt(b -> Math.abs(140 - b.brightness)));
+        brightnessValues.sort(Comparator.comparingInt(b -> Math.abs(brightnessThreshold - b.brightness)));
 
         List<Integer> outputSymbols = new ArrayList<>();
         Map<Integer, Integer> symbolCounts = new HashMap<>();
