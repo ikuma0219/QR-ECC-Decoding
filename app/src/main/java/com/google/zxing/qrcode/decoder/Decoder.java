@@ -17,7 +17,7 @@
  package com.google.zxing.qrcode.decoder;
 
  import com.es3.libs.ErasePositionReader;
-import com.google.zxing.ChecksumException;
+ import com.google.zxing.ChecksumException;
  import com.google.zxing.DecodeHintType;
  import com.google.zxing.FormatException;
  import com.google.zxing.common.BitMatrix;
