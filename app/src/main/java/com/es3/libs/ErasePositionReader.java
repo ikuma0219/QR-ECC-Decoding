@@ -20,22 +20,16 @@ public class ErasePositionReader {
 
             while ((line = reader.readLine()) != null) {
                 if (currentRow == targetRow) {
-                    // 行をカンマで分割して配列にする
                     String[] elements = line.split(",");
 
-                    // 削除する要素の数を計算（jが1増えるごとに2つ削除）
                     int elementsToRemove = 2 * j;
 
-                    // 要素数が負にならないように調整
                     int newLength = Math.max(0, elements.length - elementsToRemove);
 
-                    // 残りの要素で新しい配列を作成
                     String[] trimmedElements = Arrays.copyOf(elements, newLength);
 
-                    // 残った要素をカンマで結合して新しい文字列を作成
                     String newLine = String.join(",", trimmedElements);
 
-                    // 新しい行をファイルに書き込む
                     try (FileWriter writer = new FileWriter(TXT_FILE_PATH)) {
                         writer.write(newLine);
                     }
