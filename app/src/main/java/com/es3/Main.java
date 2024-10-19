@@ -23,7 +23,7 @@ public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
 	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
-	private static final String NOISE_LEVEL = "10.5";
+	private static final String NOISE_LEVEL = "10.3";
 	private static final int MAX_TRIES = 5;
 	private static final int BRIGHTNESS_THRESHOLD = 128;
 

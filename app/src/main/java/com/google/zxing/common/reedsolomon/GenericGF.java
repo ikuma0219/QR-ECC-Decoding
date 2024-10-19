@@ -167,13 +167,15 @@
    ///追加
    //@return b/a
    int divide(int a, int b) {
-     if (a == 0) {
-      //  throw new ArithmeticException();
-       return Integer.MIN_VALUE;
-     }
-     if (b == 0) {
-       return 0;
-     } 
+    try {
+      if (a == 0) {
+        throw new ArithmeticException();
+      }
+      if (b == 0) {
+        return 0;
+      }
+    } catch (ArithmeticException e) {
+    }
      
      if (logTable[b] >= logTable[a]) {
        return expTable[(logTable[b] - logTable[a]) % (size - 1)];
