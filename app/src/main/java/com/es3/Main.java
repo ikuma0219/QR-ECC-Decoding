@@ -3,6 +3,7 @@ package com.es3;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
@@ -23,8 +24,8 @@ public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
 	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
-	private static final String NOISE_LEVEL = "10.3";
-	private static final int MAX_TRIES = 5;
+	private static final String NOISE_LEVEL = "9.8";
+	private static final int MAX_TRIES = 0;
 	private static final int BRIGHTNESS_THRESHOLD = 128;
 
 	public static void main(String[] args) throws IOException, NotFoundException {
@@ -33,7 +34,7 @@ public class Main {
 		initializeErasePosition();
 
 		for (int i = 0; i < 200; i++) {
-			String originalData = null;
+			byte[] originalData = null;
 			try {
 				BufferedImage originalImage = loadImage(ORIGINAL_IMAGE_PATH + i + ".png");
 				originalData = decode(originalImage);
@@ -54,17 +55,17 @@ public class Main {
 	}
 
 	// デコード比較
-	private static boolean attemptDenoisedDecoding(int index, String originalData) {
-		for (int j = 0; j <= MAX_TRIES; j++) {
-			try {
-				ErasePositionReader.processRowAndSaveToFile(index, j); // 消失位置を取得
-
-				BufferedImage denoisedImage = loadImage(DENOISED_IMAGE_PATH + NOISE_LEVEL + "/" + index + ".png");
-				String denoisedData = decode(denoisedImage);
-
-				// デコード成功かチェック
-				if (denoisedData != null && denoisedData.equals(originalData)) {
-					System.out.println(index + ".png: " + denoisedData + " 復号成功！！！");
+	private static boolean attemptDenoisedDecoding(int index, byte[] originalData) {
+			for (int j = 0; j <= MAX_TRIES; j++) {
+				try {
+					ErasePositionReader.processRowAndSaveToFile(index, j); // 消失位置を取得
+	
+					BufferedImage denoisedImage = loadImage(DENOISED_IMAGE_PATH + NOISE_LEVEL + "/" + index + ".png");
+					byte[] denoisedData = decode(denoisedImage);
+	
+					// デコード成功かチェック
+					if (denoisedData != null && Arrays.equals(originalData, denoisedData)){
+					System.out.println(index + ".png: " + " 復号成功！！！");
 					return true;
 				}
 			} catch (IOException | NotFoundException | ChecksumException | FormatException e) {
@@ -85,14 +86,18 @@ public class Main {
 	}
 
 	// デコードロジック
-	public static String decode(BufferedImage image)
+	public static byte[] decode(BufferedImage image)
 			throws NotFoundException, ChecksumException, FormatException {
 		LuminanceSource source = new BufferedImageLuminanceSource(image);
 		Binarizer binarizer = new HybridBinarizer(source);
 		BinaryBitmap bitmap = new BinaryBitmap(binarizer);
 		QRCodeReader reader = new QRCodeReader();
 		Result result = reader.decode(bitmap);
-		String data = result.getText();
+		byte[] data = result.getRawBytes();
+		String data1 = result.getText();
+		System.out.println(Arrays.toString(data));
+		System.out.println(data1);
+
 		return data;
 	}
 }
