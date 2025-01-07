@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 
 import com.google.zxing.LuminanceSource;
@@ -101,64 +100,50 @@ public class ErasePositionWriter {
     }
 
     public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols, int brightnessThreshold) {
-        List<PixelBrightness> brightnessValues = new ArrayList<>();
+        // 各シンボルごとの輝度差合計を計算
+        Map<Integer, Double> symbolAverageConfidence = new HashMap<>();
+        for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
+            int[][] symbol = symbols.get(symbolIndex);
+            Double totalConfidence = (double) 0;
 
-        // 輝度値とその座標を収集
-        for (int i = 0; i < 29; i++) {
-            for (int j = 0; j < 29; j++) {
-                int brightness = denoisedImage[i][j];
-                brightnessValues.add(new PixelBrightness(i, j, brightness));
-            }
-        }
-
-        // 輝度175に近い順にソート
-        brightnessValues.sort(Comparator.comparingInt(b -> Math.abs(brightnessThreshold - b.brightness)));
-
-        List<Integer> outputSymbols = new ArrayList<>();
-        Map<Integer, Integer> symbolCounts = new HashMap<>();
-
-        // シンボルのインデックスを最大10個取得
-        for (PixelBrightness pixel : brightnessValues) {
-            int i = pixel.x;
-            int j = pixel.y;
-            for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
-                int[][] symbol = symbols.get(symbolIndex);
-                if (isContained(i, j, symbol)) {
-                    symbolCounts.put(symbolIndex, symbolCounts.getOrDefault(symbolIndex, 0) + 1);
-                    // 10個未満なら出力リストに追加
-                    if (!outputSymbols.contains(symbolIndex) && symbolCounts.get(symbolIndex) <= 10) {
-                        outputSymbols.add(symbolIndex);
-                    }
-                    break;
+            for (int[] point : symbol) {
+                int x = point[0];
+                int y = point[1];
+                // 範囲チェック
+                if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
+                    int brightness = denoisedImage[x][y];
+                    double confidence = calculateTheta(brightness, brightnessThreshold);
+                    totalConfidence += confidence; 
                 }
             }
-            if (outputSymbols.size() >= 10) { // 最大10個に達したら終了
-                break;
-            }
+
+            // シンボルごとの輝度差の合計を保存
+            double averageConfidence = totalConfidence / 8.0;
+            symbolAverageConfidence.put(symbolIndex, averageConfidence);
+        }
+
+        // 輝度差合計が小さい順にソート
+        List<Map.Entry<Integer, Double>> sortedSymbols = new ArrayList<>(symbolAverageConfidence.entrySet());
+        sortedSymbols.sort(Map.Entry.comparingByValue());
+
+        // 上位10個のシンボルインデックスを取得
+        List<Integer> outputSymbols = new ArrayList<>();
+        for (int i = 0; i < Math.min(10, sortedSymbols.size()); i++) {
+            outputSymbols.add(sortedSymbols.get(i).getKey());
         }
 
         return outputSymbols;
     }
 
-    static class PixelBrightness {
-        int x;
-        int y;
-        int brightness;
-
-        PixelBrightness(int x, int y, int brightness) {
-            this.x = x;
-            this.y = y;
-            this.brightness = brightness;
+    public static double calculateTheta(int L, int brightnessThreshold) {
+        int s = brightnessThreshold; // 固定値
+        double theta;
+        if (L < s) {
+            theta = (double) (s - L) / s;
+        } else {
+            theta = (double) (L - s) / (255 - s);
         }
-    }
-
-    private static boolean isContained(int x, int y, int[][] symbol) {
-        for (int[] point : symbol) {
-            if (point[0] == x && point[1] == y) {
-                return true;
-            }
-        }
-        return false;
+        return theta;
     }
 
     private static void saveErrorSymbolsToCsv(List<Integer> errorSymbols) {

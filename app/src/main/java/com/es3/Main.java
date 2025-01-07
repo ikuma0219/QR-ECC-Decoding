@@ -23,34 +23,36 @@ public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
 	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
-	private static final String NOISE_LEVEL = "10.3";
+	private static final String NOISE_LEVEL = "9.5";
 	private static final int MAX_TRIES = 5;
-	private static final int BRIGHTNESS_THRESHOLD = 128;
+	// private static final int BRIGHTNESS_THRESHOLD = 128;
 
 	public static void main(String[] args) throws IOException, NotFoundException {
-		int successfulDecodes = 0;
+		for (int threshold = 110; threshold <= 149; threshold++) {
+			initializeErasePosition(threshold);
+			int successfulDecodes = 0;
 
-		initializeErasePosition();
+			for (int i = 0; i < 200; i++) {
+				String originalData = null;
+				try {
+					BufferedImage originalImage = loadImage(ORIGINAL_IMAGE_PATH + i + ".png");
+					originalData = decode(originalImage);
+				} catch (IOException | NotFoundException | ChecksumException | FormatException e) {
+					continue;
+				}
 
-		for (int i = 0; i < 200; i++) {
-			String originalData = null;
-			try {
-				BufferedImage originalImage = loadImage(ORIGINAL_IMAGE_PATH + i + ".png");
-				originalData = decode(originalImage);
-			} catch (IOException | NotFoundException | ChecksumException | FormatException e) {
-				continue;
+				if (attemptDenoisedDecoding(i, originalData)) {
+					successfulDecodes++;
+				}
 			}
+			System.out.println(threshold + "Total successful decodes: "  + successfulDecodes);
 
-			if (attemptDenoisedDecoding(i, originalData)) {
-				successfulDecodes++;
-			}
 		}
-		System.out.println("Total successful decodes: " + successfulDecodes);
 	}
 
-	private static void initializeErasePosition() throws NotFoundException, IOException {
+	private static void initializeErasePosition(int threshold) throws NotFoundException, IOException {
 		ErasePositionWriter.clearCsvFile(); 
-		ErasePositionWriter.eraseSymbolList(NOISE_LEVEL, BRIGHTNESS_THRESHOLD);
+		ErasePositionWriter.eraseSymbolList(NOISE_LEVEL, threshold);
 	}
 
 	// デコード比較
@@ -64,14 +66,14 @@ public class Main {
 
 				// デコード成功かチェック
 				if (denoisedData != null && denoisedData.equals(originalData)) {
-					System.out.println(index + ".png: " + denoisedData + " 復号成功！！！");
+					// System.out.println(index + ".png: " + denoisedData + " 復号成功！！！");
 					return true;
 				}
 			} catch (IOException | NotFoundException | ChecksumException | FormatException e) {
 			}
 
 			if (j == MAX_TRIES) {
-				System.out.println(index + ".png: jが5に達したためループを終了します。");
+				// System.out.println(index + ".png: jが5に達したためループを終了します。");
 				break;
 			}
 		}
