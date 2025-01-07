@@ -33,8 +33,8 @@ public class ErasePositionReader {
                     try (FileWriter writer = new FileWriter(TXT_FILE_PATH)) {
                         writer.write(newLine);
                     }
-                    // System.out.println("try " + j);
-                    // System.out.println(newLine);
+                    System.out.println("try " + j);
+                    System.out.println(newLine);
                     return newLine;
                 }
                 currentRow++;

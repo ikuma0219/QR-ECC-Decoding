@@ -21,7 +21,8 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 public class ErasePositionWriter {
     private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
 
-    public static void eraseSymbolList(String noiseLevel, int brightnessThreshold) throws IOException, NotFoundException {
+    public static void eraseSymbolList(String noiseLevel, int brightnessThreshold)
+            throws IOException, NotFoundException {
 
         List<int[][]> symbols = new ArrayList<>();
         symbols.add(new int[][] { { 26, 26 }, { 26, 25 }, { 25, 26 }, { 25, 25 }, { 24, 26 }, { 24, 25 }, { 23, 26 }, { 23, 25 } });
@@ -100,7 +101,7 @@ public class ErasePositionWriter {
     }
 
     public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols, int brightnessThreshold) {
-        // 各シンボルごとの輝度差合計を計算
+        // 各シンボルごとの信頼度
         Map<Integer, Double> symbolAverageConfidence = new HashMap<>();
         for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
             int[][] symbol = symbols.get(symbolIndex);
@@ -113,11 +114,11 @@ public class ErasePositionWriter {
                 if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
                     int brightness = denoisedImage[x][y];
                     double confidence = calculateTheta(brightness, brightnessThreshold);
-                    totalConfidence += confidence; 
+                    totalConfidence += confidence;
                 }
             }
 
-            // シンボルごとの輝度差の合計を保存
+            // シンボルごとの信頼度を保存
             double averageConfidence = totalConfidence / 8.0;
             symbolAverageConfidence.put(symbolIndex, averageConfidence);
         }
@@ -135,8 +136,9 @@ public class ErasePositionWriter {
         return outputSymbols;
     }
 
+    // 信頼度計算
     public static double calculateTheta(int L, int brightnessThreshold) {
-        int s = brightnessThreshold; // 固定値
+        int s = brightnessThreshold;
         double theta;
         if (L < s) {
             theta = (double) (s - L) / s;
@@ -150,8 +152,8 @@ public class ErasePositionWriter {
         String csvFilePath = "app/temp/list_eraseposition.csv";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFilePath, true))) {
             String line = errorSymbols.stream()
-                    .map(String::valueOf) 
-                    .collect(Collectors.joining(",")); 
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
             writer.write(line + "\n");
         } catch (IOException e) {
             e.printStackTrace();
