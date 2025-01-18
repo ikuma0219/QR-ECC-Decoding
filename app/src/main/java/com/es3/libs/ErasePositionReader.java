@@ -22,7 +22,7 @@ public class ErasePositionReader {
                 if (currentRow == targetRow) {
                     String[] elements = line.split(",");
 
-                    int elementsToRemove = 2 * j;
+                    int elementsToRemove = 2 * (j - 1);
 
                     int newLength = Math.max(0, elements.length - elementsToRemove);
 

@@ -20,6 +20,7 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 
 public class ErasePositionWriter {
     private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
+    private static final String INVERTED_IMAGE_PATH = "app/data/resourse/inverted/";
 
     public static void eraseSymbolList(String noiseLevel, int brightnessThreshold)
             throws IOException, NotFoundException {
@@ -91,7 +92,7 @@ public class ErasePositionWriter {
                         denoisedImageArray[y][x] = luminance; // 2次元配列に格納
                     }
                 }
-                List<Integer> errorSymbols = calculateErases(denoisedImageArray, symbols, brightnessThreshold);
+                List<Integer> errorSymbols = calculateErases(denoisedImageArray, symbols, brightnessThreshold, noiseLevel, i);
                 saveErrorSymbolsToCsv(errorSymbols);
 
             } catch (IOException e) {
@@ -100,12 +101,12 @@ public class ErasePositionWriter {
         }
     }
 
-    public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols, int brightnessThreshold) {
+    public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols, int brightnessThreshold, String noiseLevel, int i) {
         // 各シンボルごとの信頼度
-        Map<Integer, Double> symbolAverageConfidence = new HashMap<>();
+        Map<Integer, Double> symbolMinBrightness = new HashMap<>();
         for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
             int[][] symbol = symbols.get(symbolIndex);
-            Double totalConfidence = (double) 0;
+            double minConfidence = Double.MAX_VALUE; // 信頼度が最小の brightness を追跡
 
             for (int[] point : symbol) {
                 int x = point[0];
@@ -113,25 +114,36 @@ public class ErasePositionWriter {
                 // 範囲チェック
                 if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
                     int brightness = denoisedImage[x][y];
-                    double confidence = calculateTheta(brightness, brightnessThreshold);
-                    totalConfidence += confidence;
+                    if(brightness >= 60 && brightness <= 180){
+                        double confidence = calculateTheta(brightness, brightnessThreshold);
+                    
+                        // 最小信頼度を更新
+                        if (confidence < minConfidence) {
+                            minConfidence = confidence;
+                        }
+                    // シンボルごとの信頼度を保存
+                    symbolMinBrightness.put(symbolIndex, minConfidence);
+                    }
                 }
             }
-
-            // シンボルごとの信頼度を保存
-            double averageConfidence = totalConfidence / 8.0;
-            symbolAverageConfidence.put(symbolIndex, averageConfidence);
         }
 
         // 輝度差合計が小さい順にソート
-        List<Map.Entry<Integer, Double>> sortedSymbols = new ArrayList<>(symbolAverageConfidence.entrySet());
+        List<Map.Entry<Integer, Double>> sortedSymbols = new ArrayList<>(symbolMinBrightness.entrySet());
         sortedSymbols.sort(Map.Entry.comparingByValue());
+        
+        for (Map.Entry<Integer, Double> entry : sortedSymbols) {
+            System.out.println("Symbol Index: " + entry.getKey() + ", Confidence: " + entry.getValue());
+        }
 
         // 上位10個のシンボルインデックスを取得
         List<Integer> outputSymbols = new ArrayList<>();
-        for (int i = 0; i < Math.min(10, sortedSymbols.size()); i++) {
-            outputSymbols.add(sortedSymbols.get(i).getKey());
+        for (int j = 0; j < Math.min(10, sortedSymbols.size()); j++) {
+            outputSymbols.add(sortedSymbols.get(j).getKey());
         }
+
+        // 復号処理: 140を閾値として白（255）または黒（0）に変換
+        decodeSymbols(denoisedImage, symbols, outputSymbols, INVERTED_IMAGE_PATH  + noiseLevel + "/"+ i +".png");
 
         return outputSymbols;
     }
@@ -146,6 +158,65 @@ public class ErasePositionWriter {
             theta = (double) (L - s) / (255 - s);
         }
         return theta;
+    }
+
+    public static void decodeSymbols(int[][] denoisedImage, List<int[][]> symbols, List<Integer> erasedSymbols, String outputFilePath) {
+        // 輝度を変換
+        for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
+            int[][] symbol = symbols.get(symbolIndex);
+    
+            for (int[] point : symbol) {
+                int x = point[0];
+                int y = point[1];
+    
+                // 範囲チェック
+                if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
+                    int brightness = denoisedImage[x][y];
+    
+                    // 消失候補かどうかを判定
+                    if (erasedSymbols.contains(symbolIndex)) {
+                        // 消失候補はそのまま維持
+                        continue;
+                    } else {
+                        // 140を基準に白（255）または黒（0）に変換
+                        if (brightness < 140) {
+                            denoisedImage[x][y] = 0; // 黒
+                        } else {
+                            denoisedImage[x][y] = 255; // 白
+                        }
+                    }
+                }
+            }
+        }
+    
+        // 変換後の画像をファイルに保存
+        saveImageAsPNG(denoisedImage, outputFilePath);
+    }
+    
+    // 画像をPNGとして保存するメソッド
+    public static void saveImageAsPNG(int[][] image, String outputFilePath) {
+        int height = image.length;
+        int width = image[0].length;
+    
+        // BufferedImage を作成
+        BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+    
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int value = image[y][x];
+                int rgb = (value << 16) | (value << 8) | value; // グレースケール
+                bufferedImage.setRGB(x, y, rgb);
+            }
+        }
+    
+        // ファイルに保存
+        try {
+            File outputFile = new File(outputFilePath);
+            ImageIO.write(bufferedImage, "png", outputFile);
+            System.out.println("Image saved to: " + outputFilePath);
+        } catch (IOException e) {
+            System.err.println("Error saving image: " + e.getMessage());
+        }
     }
 
     private static void saveErrorSymbolsToCsv(List<Integer> errorSymbols) {

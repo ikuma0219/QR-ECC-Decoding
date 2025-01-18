@@ -22,10 +22,10 @@ import com.google.zxing.qrcode.QRCodeReader;
 public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
+	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/inverted/";
 	private static final String NOISE_LEVEL = "10.5";
-	private static final int MAX_TRIES = 5;
-	private static final int BRIGHTNESS_THRESHOLD = 128;
+	private static final int MAX_TRIES = 1;
+	private static final int BRIGHTNESS_THRESHOLD = 130;
 
 	public static void main(String[] args) throws IOException, NotFoundException {
 		initializeErasePosition();
@@ -54,7 +54,7 @@ public class Main {
 
 	// デコード比較
 	private static boolean attemptDenoisedDecoding(int index, String originalData) {
-		for (int j = 0; j <= MAX_TRIES; j++) {
+		for (int j = 1; j <= MAX_TRIES; j++) {
 			try {
 				ErasePositionReader.processRowAndSaveToFile(index, j); // 消失位置を取得
 
@@ -70,7 +70,7 @@ public class Main {
 			}
 
 			if (j == MAX_TRIES) {
-				System.out.println(index + ".png: jが5に達したためループを終了します。");
+				System.out.println(index + ".png: jが6に達したためループを終了します。");
 				break;
 			}
 		}
