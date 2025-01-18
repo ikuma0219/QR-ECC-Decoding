@@ -180,7 +180,7 @@
        codewordsInts[i] = codewordBytes[i] & 0xFF;
      }
      int errorsCorrected = 0;
-     int[] eraseposition = ErasePositionReader.readErasePositionsFromTxtFile();
+     int[] eraseposition = ErasePositionReader.getErasePositionsFromFile();
      try {
      //追記(2024/3/19)　消失訂正アルゴリズムへ
        errorsCorrected = rsDecoder.erasedecodeWithECCount(codewordsInts, eraseposition, codewordBytes.length - numDataCodewords);

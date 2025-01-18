@@ -8,18 +8,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 
 public class ErasePositionWriter {
     private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
+    private static final String CSV_FILE_PATH = "app/temp/list_eraseposition.csv";
 
     public static void eraseSymbolList(String noiseLevel, int brightnessThreshold)
             throws IOException, NotFoundException {
@@ -149,8 +146,7 @@ public class ErasePositionWriter {
     }
 
     private static void saveErrorSymbolsToCsv(List<Integer> errorSymbols) {
-        String csvFilePath = "app/temp/list_eraseposition.csv";
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFilePath, true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CSV_FILE_PATH, true))) {
             String line = errorSymbols.stream()
                     .map(String::valueOf)
                     .collect(Collectors.joining(","));
@@ -161,9 +157,8 @@ public class ErasePositionWriter {
     }
 
     public static void clearCsvFile() {
-        String csvFilePath = "app/temp/list_eraseposition.csv";
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFilePath))) {
-            writer.write(""); // 空の内容で上書き
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CSV_FILE_PATH))) {
+            writer.write("");
         } catch (IOException e) {
             e.printStackTrace();
         }
