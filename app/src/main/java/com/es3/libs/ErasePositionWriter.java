@@ -12,11 +12,11 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 
 public class ErasePositionWriter {
     private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
-    // private static final String INVERTED_IMAGE_PATH = "app/data/resourse/inverted/";
     private static final String CSV_FILE_PATH = "app/temp/list_eraseposition.csv";
+    private static final int BRIGHTNESS_MIN = 78;
+    private static final int BRIGHTNESS_MAX = 198;
 
-    public static void eraseSymbolList(String noiseLevel, int brightnessThreshold)
-            throws IOException, NotFoundException {
+    public static void eraseSymbolList(String noiseLevel, int brightnessThreshold)throws IOException, NotFoundException {
 
         List<int[][]> symbols = new ArrayList<>();
         symbols.add(new int[][] { { 26, 26 }, { 26, 25 }, { 25, 26 }, { 25, 25 }, { 24, 26 }, { 24, 25 }, { 23, 26 }, { 23, 25 } });
@@ -65,88 +65,98 @@ public class ErasePositionWriter {
         symbols.add(new int[][] { { 11, 2 }, { 12, 3 }, { 12, 2 }, { 13, 3 }, { 13, 2 }, { 14, 3 }, { 14, 2 }, { 15, 3 } });
 
         for (int i = 0; i < 200; i++) {
-            try {
-                BufferedImage denoisedImage = ImageIO.read(new File(DENOISED_IMAGE_PATH + noiseLevel + "/" + i + ".png"));
-                if (denoisedImage == null) continue;
+            File imageFile = new File(DENOISED_IMAGE_PATH + noiseLevel + "/" + i + ".png");
+            if (!imageFile.exists())
+                continue;
 
-                int[][] denoisedImageArray = resizeAndConvertToArray(denoisedImage);
-                List<Integer> errorSymbols = calculateErases(denoisedImageArray, symbols, brightnessThreshold);
+            try {
+                BufferedImage denoisedImage = ImageIO.read(imageFile);
+                int[][] imageArray = resizeAndConvertToArray(denoisedImage);
+                List<Integer> errorSymbols = calculateErasedSymbols(imageArray, symbols, brightnessThreshold);
                 saveErrorSymbolsToCsv(errorSymbols);
             } catch (IOException e) {
+                System.err.println("Error processing file: " + imageFile.getName());
                 e.printStackTrace();
             }
         }
     }
 
     private static int[][] resizeAndConvertToArray(BufferedImage image) {
-        int newWidth = image.getWidth() / 8, newHeight = image.getHeight() / 8;
+        int newWidth = image.getWidth() / 8;
+        int newHeight = image.getHeight() / 8;
         BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_3BYTE_BGR);
-        
-        Graphics2D g = resizedImage.createGraphics();
-        g.drawImage(image, 0, 0, newWidth, newHeight, null);
-        g.dispose();
-        
-        LuminanceSource source = new BufferedImageLuminanceSource(resizedImage);
-        int[][] array = new int[newHeight][newWidth];
-        byte[] matrix = source.getMatrix();
-        
-        for (int y = 0; y < newHeight; y++) {
-            for (int x = 0; x < newWidth; x++) {
-                array[y][x] = matrix[y * newWidth + x] & 0xFF;
-            }
-        }
-        return array;
+
+        Graphics2D graphics = resizedImage.createGraphics();
+        graphics.drawImage(image, 0, 0, newWidth, newHeight, null);
+        graphics.dispose();
+
+        return convertToBrightnessArray(resizedImage);
     }
 
-    private static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols, int brightnessThreshold) {
-        Map<Integer, Double> symbolMinBrightness = new HashMap<>();
+    private static int[][] convertToBrightnessArray(BufferedImage image) {
+        LuminanceSource source = new BufferedImageLuminanceSource(image);
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[][] brightnessArray = new int[height][width];
+        byte[] matrix = source.getMatrix();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                brightnessArray[y][x] = matrix[y * width + x] & 0xFF;
+            }
+        }
+        return brightnessArray;
+    }
+
+    private static List<Integer> calculateErasedSymbols(int[][] imageArray, List<int[][]> symbols,
+            int brightnessThreshold) {
+        Map<Integer, Double> symbolBrightnessMap = new HashMap<>();
 
         for (int i = 0; i < symbols.size(); i++) {
-            double minConfidence = symbols.get(i).length > 0 ? Double.MAX_VALUE : -1;
-            
-            for (int[] point : symbols.get(i)) {
-                int x = point[0], y = point[1];
-                if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
-                    int brightness = denoisedImage[x][y];
-                    if (brightness >= 78 && brightness <= 198) {
-                        minConfidence = Math.min(minConfidence, Math.abs(brightnessThreshold - brightness));
-                    }
-                }
+            double minConfidence = findMinConfidence(imageArray, symbols.get(i), brightnessThreshold);
+            if (minConfidence != -1) {
+                symbolBrightnessMap.put(i, minConfidence);
             }
-            if (minConfidence != -1) symbolMinBrightness.put(i, minConfidence);
         }
-        List<Integer> outputSymbols = symbolMinBrightness.entrySet().stream()
-        .sorted(Map.Entry.comparingByValue())
-        .limit(10)
-        .map(Map.Entry::getKey)
-        .collect(Collectors.toList());
 
-        // もし10個未満なら、残りのシンボルから補充（同じ処理を再利用）
-        if (outputSymbols.size() < 10) {
-            Set<Integer> selectedSymbols = new HashSet<>(outputSymbols);
+        List<Integer> selectedSymbols = symbolBrightnessMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .limit(10)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
 
-            for (int i = 0; i < symbols.size(); i++) {
-                if (!selectedSymbols.contains(i)) {
-                    double minConfidence = symbols.get(i).length > 0 ? Double.MAX_VALUE : -1;
+        return fillRemainingSymbols(selectedSymbols, symbols, imageArray, brightnessThreshold);
+    }
 
-                    for (int[] point : symbols.get(i)) {
-                        int x = point[0], y = point[1];
-                        if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
-                            int brightness = denoisedImage[x][y];
-                            double confidence = Math.abs(brightnessThreshold - brightness);
-                            minConfidence = Math.min(minConfidence, confidence);
-                        }
-                    }
-                    if (minConfidence != -1) {
-                        outputSymbols.add(i);
-                        selectedSymbols.add(i);
-                    }
+    private static double findMinConfidence(int[][] imageArray, int[][] symbol, int brightnessThreshold) {
+        double minConfidence = symbol.length > 0 ? Double.MAX_VALUE : -1;
 
-                    if (outputSymbols.size() >= 10) break;
+        for (int[] point : symbol) {
+            int x = point[0], y = point[1];
+            if (x >= 0 && x < imageArray.length && y >= 0 && y < imageArray[0].length) {
+                int brightness = imageArray[x][y];
+                if (brightness >= BRIGHTNESS_MIN && brightness <= BRIGHTNESS_MAX) {
+                    minConfidence = Math.min(minConfidence, Math.abs(brightnessThreshold - brightness));
                 }
             }
         }
-        return outputSymbols;
+        return minConfidence;
+    }
+
+    private static List<Integer> fillRemainingSymbols(List<Integer> selectedSymbols, List<int[][]> symbols,
+            int[][] imageArray, int brightnessThreshold) {
+        Set<Integer> selectedSet = new HashSet<>(selectedSymbols);
+
+        for (int i = 0; i < symbols.size() && selectedSymbols.size() < 10; i++) {
+            if (!selectedSet.contains(i)) {
+                double minConfidence = findMinConfidence(imageArray, symbols.get(i), brightnessThreshold);
+                if (minConfidence != -1) {
+                    selectedSymbols.add(i);
+                    selectedSet.add(i);
+                }
+            }
+        }
+        return selectedSymbols;
     }
 
     private static void saveErrorSymbolsToCsv(List<Integer> errorSymbols) {
@@ -165,204 +175,3 @@ public class ErasePositionWriter {
         }
     }
 }
-
-
-// for (int i = 0; i < 200; i++) {
-//             try {
-//                 File denoisedImageFile = new File(DENOISED_IMAGE_PATH + noiseLevel + "/" + i + ".png");
-//                 BufferedImage denoisedImage = ImageIO.read(denoisedImageFile);
-
-//                 int newWidth = denoisedImage.getWidth() / 8;
-//                 int newHeight = denoisedImage.getHeight() / 8;
-//                 int[][] denoisedImageArray = new int[newHeight][newWidth]; // 2次元配列を作成
-
-//                 BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_3BYTE_BGR);
-//                 Graphics2D g = resizedImage.createGraphics();
-//                 g.drawImage(denoisedImage, 0, 0, newWidth, newHeight, null); // 元の画像をリサイズしてコピー
-//                 g.dispose();
-//                 LuminanceSource source = new BufferedImageLuminanceSource(resizedImage); // リサイズ後の画像に対してLuminanceSourceを適用
-
-//                 for (int y = 0; y < newHeight; y++) {
-//                     for (int x = 0; x < newWidth; x++) {
-//                         int luminance = source.getMatrix()[y * newWidth + x] & 0xFF; // ピクセルのグレースケール値を取得
-//                         denoisedImageArray[y][x] = luminance; // 2次元配列に格納
-//                     }
-//                 }
-//                 List<Integer> errorSymbols = calculateErases(denoisedImageArray, symbols, brightnessThreshold, noiseLevel, i);
-//                 saveErrorSymbolsToCsv(errorSymbols);
-
-//             } catch (IOException e) {
-//                 e.printStackTrace();
-//             }
-//         }
-//     }
-
-//     public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols, int brightnessThreshold, String noiseLevel, int i) {
-//         // 各シンボルごとの信頼度
-//         Map<Integer, Double> symbolMinBrightness = new HashMap<>();
-//         for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
-//             int[][] symbol = symbols.get(symbolIndex);
-//             double minConfidence = Double.MAX_VALUE; // 信頼度が最小の brightness を追跡
-//             boolean validSymbol = false;
-
-//             for (int[] point : symbol) {
-//                 int x = point[0];
-//                 int y = point[1];
-//                 // 範囲チェック
-//                 if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
-//                     int brightness = denoisedImage[x][y];
-//                     if (brightness >= 78 && brightness <= 198) {
-//                         double confidence = Math.abs(brightnessThreshold - brightness);
-//                         minConfidence = Math.min(minConfidence, confidence);
-//                         validSymbol = true;
-//                     }
-//                 }
-//             }
-//             if (validSymbol) {
-//                 symbolMinBrightness.put(symbolIndex, minConfidence);
-//             }
-//         }
-
-//         // 輝度差合計が小さい順にソート
-//         List<Map.Entry<Integer, Double>> sortedSymbols = new ArrayList<>(symbolMinBrightness.entrySet());
-//         sortedSymbols.sort(Map.Entry.comparingByValue());
-
-//         // 上位10個のシンボルインデックスを取得
-//         List<Integer> outputSymbols = new ArrayList<>();
-//         for (int j = 0; j < Math.min(10, sortedSymbols.size()); j++) {
-//             outputSymbols.add(sortedSymbols.get(j).getKey());
-//         }
-
-//         // もし10未満なら、消失候補以外のシンボルから補充
-//         if (outputSymbols.size() < 10) {
-//             Set<Integer> selectedSymbols = new HashSet<>(outputSymbols);
-//             for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
-//                 if (!selectedSymbols.contains(symbolIndex)) {
-//                     int[][] symbol = symbols.get(symbolIndex);
-//                     double minConfidence = Double.MAX_VALUE;
-//                     boolean validSymbol = false;
-
-//                     for (int[] point : symbol) {
-//                         int x = point[0];
-//                         int y = point[1];
-//                         if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
-//                             int brightness = denoisedImage[x][y];
-//                             double confidence = Math.abs(brightnessThreshold - brightness);
-//                             minConfidence = Math.min(minConfidence, confidence);
-//                             validSymbol = true;
-//                         }
-//                     }
-
-//                     if (validSymbol) {
-//                         symbolMinBrightness.put(symbolIndex, minConfidence);
-//                         outputSymbols.add(symbolIndex);
-//                         selectedSymbols.add(symbolIndex);
-//                         if (outputSymbols.size() >= 10)
-//                             break;
-//                     }
-//                 }
-//             }
-//         }
-//         System.out.println("Final outputSymbols: " + outputSymbols);
-
-//         // // 復号処理: 140を閾値として白（255）または黒（0）に変換
-//         // decodeSymbols(denoisedImage, symbols, outputSymbols, INVERTED_IMAGE_PATH +
-//         //         noiseLevel + "/" + i + ".png");
-
-//         return outputSymbols;
-//     }
-
-//     // 信頼度計算
-//     public static double calculateTheta(int L, int brightnessThreshold) {
-//         int s = brightnessThreshold;
-//         double theta;
-//         if (L < s) {
-//             theta = (double) (s - L) / s;
-//         } else {
-//             theta = (double) (L - s) / (255 - s);
-//         }
-//         return theta;
-//     }
-
-//     // public static void decodeSymbols(int[][] denoisedImage, List<int[][]> symbols, List<Integer> erasedSymbols,
-//     //         String outputFilePath) {
-//     //     // 輝度を変換
-//     //     for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
-//     //         int[][] symbol = symbols.get(symbolIndex);
-
-//     //         for (int[] point : symbol) {
-//     //             int x = point[0];
-//     //             int y = point[1];
-
-//     //             // 範囲チェック
-//     //             if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
-//     //                 int brightness = denoisedImage[x][y];
-
-//     //                 // 消失候補かどうかを判定
-//     //                 if (erasedSymbols.contains(symbolIndex)) {
-//     //                     // 消失候補はそのまま維持
-//     //                     continue;
-//     //                 } else {
-//     //                     // 140を基準に白（255）または黒（0）に変換
-//     //                     if (brightness < 138) {
-//     //                         denoisedImage[x][y] = 0; // 黒
-//     //                     } else {
-//     //                         denoisedImage[x][y] = 255; // 白
-//     //                     }
-//     //                 }
-//     //             }
-//     //         }
-//     //     }
-
-//     //     // 変換後の画像をファイルに保存
-//     //     saveImageAsPNG(denoisedImage, outputFilePath, 232, 232);
-//     // }
-
-//     // // 画像をPNGとして保存するメソッド
-//     // public static void saveImageAsPNG(int[][] image, String outputFilePath, int newWidth, int newHeight) {
-//     //     int height = image.length;
-//     //     int width = image[0].length;
-
-//     //     // BufferedImage を作成
-//     //     BufferedImage bufferedImage = new BufferedImage(width, height,
-//     //             BufferedImage.TYPE_BYTE_GRAY);
-
-//     //     for (int y = 0; y < height; y++) {
-//     //         for (int x = 0; x < width; x++) {
-//     //             int value = image[y][x];
-//     //             int rgb = (value << 16) | (value << 8) | value; // グレースケール
-//     //             bufferedImage.setRGB(x, y, rgb);
-//     //         }
-//     //     }
-    
-//     //     // ファイルに保存
-//     //     try {
-//     //         File outputFile = new File(outputFilePath);
-//     //         ImageIO.write(bufferedImage, "png", outputFile);
-//     //         System.out.println("Image saved to: " + outputFilePath);
-//     //     } catch (IOException e) {
-//     //         System.err.println("Error saving image: " + e.getMessage());
-//     //     }
-//     // }
-
-//     private static void saveErrorSymbolsToCsv(List<Integer> errorSymbols) {
-//         String csvFilePath = "app/temp/list_eraseposition.csv";
-//         try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFilePath, true))) {
-//             String line = errorSymbols.stream()
-//                     .map(String::valueOf)
-//                     .collect(Collectors.joining(","));
-//             writer.write(line + "\n");
-//         } catch (IOException e) {
-//             e.printStackTrace();
-//         }
-//     }
-
-//     public static void clearCsvFile() {
-//         String csvFilePath = "app/temp/list_eraseposition.csv";
-//         try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFilePath))) {
-//             writer.write(""); // 空の内容で上書き
-//         } catch (IOException e) {
-//             e.printStackTrace();
-//         }
-//     }
-// }

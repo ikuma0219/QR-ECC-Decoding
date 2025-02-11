@@ -3,18 +3,11 @@ package com.es3;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 
 import com.es3.libs.ErasePositionWriter;
 import com.es3.libs.ErasePositionReader;
-import com.google.zxing.Binarizer;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
+import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
@@ -26,42 +19,36 @@ public class Main {
 	private static final String NOISE_LEVEL = "10.5";
 	private static final int MAX_TRIES = 6;
 	private static final int BRIGHTNESS_THRESHOLD = 138;
+	private static final int MAX_IMAGES = 200;
 
 	public static void main(String[] args) throws IOException, NotFoundException {
-		initializeErasePosition();
+		ErasePositionWriter.clearCsvFile();
+		ErasePositionWriter.eraseSymbolList(String.valueOf(NOISE_LEVEL), BRIGHTNESS_THRESHOLD);
 		int successfulDecodes = 0;
 
-		for (int i = 0; i < 200; i++) {
-			String originalData = null;
+		for (int i = 0; i < MAX_IMAGES; i++) {
 			try {
 				BufferedImage originalImage = loadImage(ORIGINAL_IMAGE_PATH + i + ".png");
-				originalData = decode(originalImage);
+				String originalData = decode(originalImage);
+
+				if (processDenoisedImage(i, originalData)) {
+					successfulDecodes++;
+				}
 			} catch (IOException | NotFoundException | ChecksumException | FormatException e) {
 				continue;
-			}
-
-			if (attemptDenoisedDecoding(i, originalData)) {
-				successfulDecodes++;
 			}
 			System.out.println("Total successful decodes: " + successfulDecodes);
 		}
 	}
 
-	private static void initializeErasePosition() throws NotFoundException, IOException {
-		ErasePositionWriter.clearCsvFile();
-		ErasePositionWriter.eraseSymbolList(NOISE_LEVEL, BRIGHTNESS_THRESHOLD);
-	}
-
 	// デコード比較
-	private static boolean attemptDenoisedDecoding(int index, String originalData) {
+	private static boolean processDenoisedImage(int index, String originalData) {
 		for (int j = 1; j <= MAX_TRIES; j++) {
 			try {
-				ErasePositionReader.processRowAndSaveToFile(index, j); // 消失位置を取得
-
+				ErasePositionReader.processRowAndSaveToFile(index, j); 
 				BufferedImage denoisedImage = loadImage(DENOISED_IMAGE_PATH + NOISE_LEVEL + "/" + index + ".png");
 				String denoisedData = decode(denoisedImage);
 
-				// デコード成功かチェック
 				if (denoisedData != null && denoisedData.equals(originalData)) {
 					System.out.println(index + ".png: " + denoisedData + " 復号成功！！！");
 					return true;
@@ -71,7 +58,6 @@ public class Main {
 
 			if (j == MAX_TRIES) {
 				System.out.println(index + ".png: jが6に達したためループを終了します。");
-				break;
 			}
 		}
 		return false;

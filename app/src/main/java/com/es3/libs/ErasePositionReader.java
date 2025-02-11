@@ -1,9 +1,6 @@
 package com.es3.libs;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,14 +25,14 @@ public class ErasePositionReader {
 
                     String[] trimmedElements = Arrays.copyOf(elements, newLength);
 
-                    String newLine = String.join(",", trimmedElements);
+                    String trimmedData = String.join(",", trimmedElements);
 
                     try (FileWriter writer = new FileWriter(TXT_FILE_PATH)) {
-                        writer.write(newLine);
+                        writer.write(trimmedData);
                     }
                     System.out.println("try " + j);
-                    System.out.println(newLine);
-                    return newLine;
+                    System.out.println(trimmedData);
+                    return trimmedData;
                 }
                 currentRow++;
             }
