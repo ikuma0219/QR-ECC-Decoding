@@ -22,10 +22,10 @@ import com.google.zxing.qrcode.QRCodeReader;
 public class Main {
 
 	private static final String ORIGINAL_IMAGE_PATH = "app/data/resourse/original/";
-	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/inverted/";
+	private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
 	private static final String NOISE_LEVEL = "10.5";
-	private static final int MAX_TRIES = 1;
-	private static final int BRIGHTNESS_THRESHOLD = 130;
+	private static final int MAX_TRIES = 6;
+	private static final int BRIGHTNESS_THRESHOLD = 138;
 
 	public static void main(String[] args) throws IOException, NotFoundException {
 		initializeErasePosition();
