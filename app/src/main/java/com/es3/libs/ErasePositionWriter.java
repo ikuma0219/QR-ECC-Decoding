@@ -18,7 +18,7 @@ public class ErasePositionWriter {
     private static final String DENOISED_IMAGE_PATH = "app/data/resourse/denoised/";
     private static final String CSV_FILE_PATH = "app/temp/list_eraseposition.csv";
 
-    public static void eraseSymbolList(String noiseLevel, int brightnessThreshold)
+    public static void eraseSymbolList(String noiseLevel)
             throws IOException, NotFoundException {
 
         List<int[][]> symbols = new ArrayList<>();
@@ -88,7 +88,7 @@ public class ErasePositionWriter {
                         denoisedImageArray[y][x] = luminance; // 2次元配列に格納
                     }
                 }
-                List<Integer> errorSymbols = calculateErases(denoisedImageArray, symbols, brightnessThreshold);
+                List<Integer> errorSymbols = calculateErases(denoisedImageArray, symbols);
                 saveErrorSymbolsToCsv(errorSymbols);
 
             } catch (IOException e) {
@@ -97,7 +97,7 @@ public class ErasePositionWriter {
         }
     }
 
-    public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols, int brightnessThreshold) {
+    public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols) {
         // 各シンボルごとの信頼度
         Map<Integer, Double> symbolAverageConfidence = new HashMap<>();
         for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
@@ -107,14 +107,31 @@ public class ErasePositionWriter {
             for (int[] point : symbol) {
                 int x = point[0];
                 int y = point[1];
-                // 範囲チェック
+                // 範囲チェックおよび5x5の平均輝度計算
                 if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
                     int brightness = denoisedImage[x][y];
-                    double confidence = calculateTheta(brightness, brightnessThreshold);
+                    // System.out.println(brightness);
+                    int totalBrightness = 0;
+                    int count = 0;
+
+                    // 5x5エリアの平均輝度を計算
+                    for (int dx = -3; dx <= 3 ; dx++) {
+                        for (int dy = -3; dy <= 3; dy++) {
+                            int nx = x + dx;
+                            int ny = y + dy;
+                            if (nx >= 0 && nx < denoisedImage.length && ny >= 0 && ny < denoisedImage[0].length) {
+                                totalBrightness += denoisedImage[nx][ny];
+                                count++;
+                            }
+                        }
+                    }
+
+                    int averageBrightness = totalBrightness / count;
+                    System.out.println(averageBrightness);
+                    double confidence = calculateTheta(brightness, averageBrightness);
                     totalConfidence += confidence;
                 }
             }
-
             // シンボルごとの信頼度を保存
             double averageConfidence = totalConfidence / 8.0;
             symbolAverageConfidence.put(symbolIndex, averageConfidence);

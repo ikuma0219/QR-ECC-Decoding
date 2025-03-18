@@ -18,7 +18,6 @@ public class Main {
 	private static final String DENOISED_IMAGE_DIR = "app/data/resourse/denoised/";
 	private static final String NOISE_LEVEL = "10.5";
 	private static final int MAX_RETRY = 5;
-	private static final int BRIGHTNESS_THRESHOLD = 128;
 
 	public static void main(String[] args) throws IOException, NotFoundException {
 		initializeErasePositionData();
@@ -40,7 +39,7 @@ public class Main {
 
 	private static void initializeErasePositionData() throws NotFoundException, IOException {
 		ErasePositionWriter.clearCsvFile();
-		ErasePositionWriter.eraseSymbolList(NOISE_LEVEL, BRIGHTNESS_THRESHOLD);
+		ErasePositionWriter.eraseSymbolList(NOISE_LEVEL);
 	}
 
 	// デコード比較
