@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import com.es3.utils.PathManager;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
@@ -19,11 +20,9 @@ import com.google.zxing.qrcode.detector.Detector;
 
 public class SymbolList {
 
-    private static final String ORIGINAL_IMAGE_DIR = "app/data/resourse/original/";
-
     public static List<int[][]> getSymbolList(int index) throws IOException, NotFoundException, FormatException {
-        File imageFile = new File(ORIGINAL_IMAGE_DIR + index + ".png");
-        BufferedImage original = ImageIO.read(imageFile);
+        String imagePath = PathManager.getDenoisedImagePath(index);
+        BufferedImage original = ImageIO.read(new File(imagePath));
         BufferedImage resized = ImageUtil.resizeImage(original, 8);
         LuminanceSource source = ImageUtil.createLuminanceSource(resized);
 
