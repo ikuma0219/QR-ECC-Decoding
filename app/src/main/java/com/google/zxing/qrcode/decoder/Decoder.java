@@ -16,7 +16,7 @@
 
  package com.google.zxing.qrcode.decoder;
 
- import com.es3.libs.ErasePositionReader;
+ import com.es3.libs.ErasePositionHolder;
  import com.google.zxing.ChecksumException;
  import com.google.zxing.DecodeHintType;
  import com.google.zxing.FormatException;
@@ -25,7 +25,7 @@
  import com.google.zxing.common.reedsolomon.GenericGF;
  import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
  import com.google.zxing.common.reedsolomon.ReedSolomonException;
- 
+
  import java.util.Map;
  
  /**
@@ -180,10 +180,11 @@
        codewordsInts[i] = codewordBytes[i] & 0xFF;
      }
      int errorsCorrected = 0;
-     int[] eraseposition = ErasePositionReader.getErasePositionsFromFile();
+     int[] erasePositions = ErasePositionHolder.getErasePositions()
+        .stream().mapToInt(Integer::intValue).toArray();
      try {
      //追記(2024/3/19)　消失訂正アルゴリズムへ
-       errorsCorrected = rsDecoder.erasedecodeWithECCount(codewordsInts, eraseposition, codewordBytes.length - numDataCodewords);
+       errorsCorrected = rsDecoder.erasedecodeWithECCount(codewordsInts, erasePositions, codewordBytes.length - numDataCodewords);
      //errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
      } catch (ReedSolomonException ignored) {
        throw ChecksumException.getChecksumInstance();
