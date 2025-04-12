@@ -23,7 +23,7 @@ public class DecoderService {
             try {
                 String originalData = decodeImage(PathManager.getOriginalImagePath(index));
 
-                List<Integer> eraseSymbols = ErasePositionWriter.getEraseSymbol(index,
+                List<Integer> eraseSymbols = EraseCandidateSelector.getEraseSymbol(index,
                         PathManager.NOISE_LEVEL);
                 List<Integer> trimmed = ErasePositionProcessor.trimErasePositions(eraseSymbols, attempt);
                 System.out.println(trimmed.toString());

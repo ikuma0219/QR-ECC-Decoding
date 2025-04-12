@@ -12,7 +12,7 @@ import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 
-public class ErasePositionWriter {
+public class EraseCandidateSelector {
 
     public static List<Integer> getEraseSymbol(int index, String noiseLevel)
             throws IOException, NotFoundException, FormatException {
