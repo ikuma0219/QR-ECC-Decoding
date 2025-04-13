@@ -21,7 +21,7 @@ import com.google.zxing.qrcode.detector.Detector;
 public class SymbolList {
 
     public static List<int[][]> getSymbolList(int index) throws IOException, NotFoundException, FormatException {
-        String imagePath = PathManager.getDenoisedImagePath(index);
+        String imagePath = PathManager.getOriginalImagePath(index);
         BufferedImage original = ImageIO.read(new File(imagePath));
         BufferedImage resized = ImageUtil.resizeImage(original, 8);
         LuminanceSource source = ImageUtil.createLuminanceSource(resized);
