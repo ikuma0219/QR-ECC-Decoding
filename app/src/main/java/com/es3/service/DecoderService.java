@@ -35,7 +35,7 @@ public class DecoderService {
                     return true;
                 }
 
-            } catch (IOException | NotFoundException | ChecksumException | FormatException e) {
+            } catch (ArrayIndexOutOfBoundsException | IOException | NotFoundException | ChecksumException | FormatException e) {
             }
         }
         System.out.println(index + ".png: デコード失敗");
