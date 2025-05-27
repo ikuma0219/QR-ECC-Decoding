@@ -46,7 +46,7 @@ public class EraseCandidateSelector {
                     int totalBrightness = 0;
                     int count = 0;
 
-                    // 5x5エリアの平均輝度を計算
+                    // 7x7エリアの平均輝度を計算
                     for (int dx = -3; dx <= 3; dx++) {
                         for (int dy = -3; dy <= 3; dy++) {
                             int nx = x + dx;
