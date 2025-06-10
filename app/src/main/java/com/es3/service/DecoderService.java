@@ -7,6 +7,7 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +23,6 @@ public class DecoderService {
             System.out.println("try" + attempt);
             try {
                 String originalData = decodeImage(PathManager.getOriginalImagePath(index));
-
                 List<Integer> eraseSymbols = EraseCandidateSelector.getEraseSymbol(index, PathManager.NOISE_LEVEL);
                 List<Integer> trimmed = ErasePositionProcessor.trimErasePositions(eraseSymbols, attempt);
                 System.out.println(trimmed);
@@ -31,12 +31,11 @@ public class DecoderService {
 
                 BufferedImage originalImage = loadAndResize(PathManager.getOriginalImagePath(index));
                 BufferedImage denoisedImage = loadAndResize(PathManager.getDenoisedImagePath(index));
-
                 BufferedImage mergedImage = mergeSymbolAndOriginal(index, originalImage, denoisedImage);
 
-                BinaryBitmap bitmap = new BinaryBitmap(
-                        new HybridBinarizer(new BufferedImageLuminanceSource(mergedImage)));
-                String mergedData = new QRCodeReader().decode(bitmap).getText();
+                BufferedImage resized = resizeToFixedSize(mergedImage, 232, 232);
+
+                String mergedData = decodeBufferedImage(resized);
 
                 if (mergedData != null && mergedData.equals(originalData)) {
                     System.out.println(index + ".png: " + mergedData + " 復号成功！！！");
@@ -58,8 +57,21 @@ public class DecoderService {
     private static String decodeImage(String filePath)
             throws NotFoundException, ChecksumException, FormatException, IOException {
         BufferedImage image = ImageIO.read(new File(filePath));
+        return decodeBufferedImage(image);
+    }
+
+    private static String decodeBufferedImage(BufferedImage image)
+            throws NotFoundException, ChecksumException, FormatException {
         BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(new BufferedImageLuminanceSource(image)));
         return new QRCodeReader().decode(bitmap).getText();
+    }
+
+    private static BufferedImage resizeToFixedSize(BufferedImage image, int width, int height) {
+        BufferedImage resized = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g = resized.createGraphics();
+        g.drawImage(image, 0, 0, width, height, null);
+        g.dispose();
+        return resized;
     }
 
     public static BufferedImage mergeSymbolAndOriginal(
