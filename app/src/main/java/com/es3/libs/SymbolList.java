@@ -1,7 +1,7 @@
 package com.es3.libs;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -30,12 +30,6 @@ public class SymbolList {
         DetectorResult detection = new Detector(bitmap.getBlackMatrix()).detect();
 
         BitMatrixParser parser = new BitMatrixParser(detection.getBits());
-        int[][][] symbols = parser.ModuleToSymbol();
-
-        List<int[][]> symbolList = new ArrayList<>();
-        for (int[][] symbol : symbols) {
-            symbolList.add(symbol);
-        }
-        return symbolList;
+        return Arrays.asList(parser.ModuleToSymbol());
     }
 }

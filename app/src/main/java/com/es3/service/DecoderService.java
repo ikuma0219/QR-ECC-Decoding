@@ -18,28 +18,22 @@ public class DecoderService {
     private static final int MAX_RETRY = 5;
 
     public boolean tryDecoding(int index) throws Exception {
-
         for (int attempt = 0; attempt <= MAX_RETRY; attempt++) {
             System.out.println("try" + attempt);
             try {
                 String originalData = decodeImage(PathManager.getOriginalImagePath(index));
 
-                List<Integer> eraseSymbols = EraseCandidateSelector.getEraseSymbol(index,
-                        PathManager.NOISE_LEVEL);
+                List<Integer> eraseSymbols = EraseCandidateSelector.getEraseSymbol(index, PathManager.NOISE_LEVEL);
                 List<Integer> trimmed = ErasePositionProcessor.trimErasePositions(eraseSymbols, attempt);
-                System.out.println(trimmed.toString());
+                System.out.println(trimmed);
+
                 ErasePositionHolder.setErasePositions(trimmed);
 
-                // 画像を読み込み
-                BufferedImage originalImage = ImageIO.read(new File(PathManager.getOriginalImagePath(index)));
-                BufferedImage denoisedImage = ImageIO.read(new File(PathManager.getDenoisedImagePath(index)));
-                BufferedImage resizedoriginalImage = ImageUtil.resizeImage(originalImage, 8);
-                BufferedImage resizeddenoisedImage = ImageUtil.resizeImage(denoisedImage, 8);
+                BufferedImage originalImage = loadAndResize(PathManager.getOriginalImagePath(index));
+                BufferedImage denoisedImage = loadAndResize(PathManager.getDenoisedImagePath(index));
 
-                // シンボル領域はdenoisedImage、シンボル領域以外はoriginalImageの値で合成
-                BufferedImage mergedImage = mergeSymbolAndOriginal(index, resizedoriginalImage, resizeddenoisedImage);
+                BufferedImage mergedImage = mergeSymbolAndOriginal(index, originalImage, denoisedImage);
 
-                // 合成画像でデコード
                 BinaryBitmap bitmap = new BinaryBitmap(
                         new HybridBinarizer(new BufferedImageLuminanceSource(mergedImage)));
                 String mergedData = new QRCodeReader().decode(bitmap).getText();
@@ -48,12 +42,17 @@ public class DecoderService {
                     System.out.println(index + ".png: " + mergedData + " 復号成功！！！");
                     return true;
                 }
-
-            } catch (ArrayIndexOutOfBoundsException | IOException | NotFoundException | ChecksumException | FormatException e) {
+            } catch (ArrayIndexOutOfBoundsException | IOException | NotFoundException | ChecksumException
+                    | FormatException e) {
+                // デコード失敗時はリトライ
             }
         }
         System.out.println(index + ".png: デコード失敗");
         return false;
+    }
+
+    private static BufferedImage loadAndResize(String path) throws IOException {
+        return ImageUtil.resizeImage(ImageIO.read(new File(path)), 8);
     }
 
     private static String decodeImage(String filePath)
@@ -63,34 +62,19 @@ public class DecoderService {
         return new QRCodeReader().decode(bitmap).getText();
     }
 
-    /**
-     * シンボル領域はdenoisedImage、シンボル領域以外はoriginalImageの値で合成
-     * 
-     * @param index         対象画像のインデックス
-     * @param originalImage 元画像
-     * @param denoisedImage ノイズ除去画像
-     * @return 合成画像
-     */
     public static BufferedImage mergeSymbolAndOriginal(
             int index,
             BufferedImage originalImage,
             BufferedImage denoisedImage) throws Exception {
 
-        // シンボル領域座標リストを取得
-        List<int[][]> symbolList = com.es3.libs.SymbolList.getSymbolList(index);
-        List<int[]> symbolPixels = new ArrayList<>();
-        for (int[][] symbol : symbolList) {
-            for (int[] coord : symbol) {
-                symbolPixels.add(coord); // coord[0]=x, coord[1]=y
-            }
-        }
+        List<int[]> symbolPixels = getSymbolPixels(index);
 
         BufferedImage result = new BufferedImage(
                 originalImage.getWidth(),
                 originalImage.getHeight(),
                 BufferedImage.TYPE_BYTE_GRAY);
 
-        // 1. 全体をoriginalImageでコピー
+        // originalImageで初期化
         for (int y = 0; y < originalImage.getHeight(); y++) {
             for (int x = 0; x < originalImage.getWidth(); x++) {
                 int value = originalImage.getRaster().getSample(x, y, 0);
@@ -98,16 +82,24 @@ public class DecoderService {
             }
         }
 
-        // 2. シンボル領域だけdenoisedImageの値で上書き
+        // シンボル領域だけdenoisedImageで上書き
         for (int[] coord : symbolPixels) {
-            int x = coord[0];
-            int y = coord[1];
-            // 範囲外チェック
+            int x = coord[0], y = coord[1];
             if (x >= 0 && x < denoisedImage.getWidth() && y >= 0 && y < denoisedImage.getHeight()) {
                 int value = denoisedImage.getRaster().getSample(x, y, 0);
                 result.getRaster().setSample(x, y, 0, value);
             }
         }
         return result;
+    }
+
+    private static List<int[]> getSymbolPixels(int index) throws Exception {
+        List<int[]> symbolPixels = new ArrayList<>();
+        for (int[][] symbol : com.es3.libs.SymbolList.getSymbolList(index)) {
+            for (int[] coord : symbol) {
+                symbolPixels.add(coord);
+            }
+        }
+        return symbolPixels;
     }
 }

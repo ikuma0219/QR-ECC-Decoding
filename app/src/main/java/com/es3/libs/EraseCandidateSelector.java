@@ -30,44 +30,36 @@ public class EraseCandidateSelector {
     }
 
     public static List<Integer> calculateErases(int[][] denoisedImage, List<int[][]> symbols) {
-        // 各シンボルごとの信頼度
-        Map<Integer, Double> symbolConfidenceMap = new HashMap<>();
-        for (int symbolIndex = 0; symbolIndex < symbols.size(); symbolIndex++) {
-            int[][] symbol = symbols.get(symbolIndex);
-            double totalConfidence = (double) 0;
+        Map<Integer, Double> confidenceMap = new HashMap<>();
+        int height = denoisedImage.length;
+        int width = denoisedImage[0].length;
+
+        for (int i = 0; i < symbols.size(); i++) {
+            int[][] symbol = symbols.get(i);
+            double confidenceSum = 0;
 
             for (int[] point : symbol) {
-                int x = point[0];
-                int y = point[1];
-                // 範囲チェックおよび5x5の平均輝度計算
-                if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
+                int x = point[0], y = point[1];
+                if (x >= 0 && x < height && y >= 0 && y < width) {
                     int brightness = denoisedImage[x][y];
-                    // System.out.println(brightness);
-                    int totalBrightness = 0;
-                    int count = 0;
-
-                    // 7x7エリアの平均輝度を計算
+                    int total = 0, count = 0;
                     for (int dx = -3; dx <= 3; dx++) {
                         for (int dy = -3; dy <= 3; dy++) {
-                            int nx = x + dx;
-                            int ny = y + dy;
-                            if (nx >= 0 && nx < denoisedImage.length && ny >= 0 && ny < denoisedImage[0].length) {
-                                totalBrightness += denoisedImage[nx][ny];
+                            int nx = x + dx, ny = y + dy;
+                            if (nx >= 0 && nx < height && ny >= 0 && ny < width) {
+                                total += denoisedImage[nx][ny];
                                 count++;
                             }
                         }
                     }
-
-                    int averageBrightness = totalBrightness / count;
-                    totalConfidence += calculateTheta(brightness, averageBrightness);
+                    int avg = total / count;
+                    confidenceSum += calculateTheta(brightness, avg);
                 }
             }
-            // シンボルごとの信頼度を保存
-            double averageConfidence = totalConfidence / 8.0;
-            symbolConfidenceMap.put(symbolIndex, averageConfidence);
+            confidenceMap.put(i, confidenceSum / 8.0);
         }
 
-        return symbolConfidenceMap.entrySet().stream()
+        return confidenceMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue())
                 .limit(10)
                 .map(Map.Entry::getKey)
