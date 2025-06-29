@@ -19,6 +19,14 @@ public class ImageUtil {
         return resized;
     }
 
+    public static BufferedImage resizeToFixedSize(BufferedImage image, int width, int height) {
+        BufferedImage resized = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g = resized.createGraphics();
+        g.drawImage(image, 0, 0, width, height, null);
+        g.dispose();
+        return resized;
+    }
+
     public static LuminanceSource createLuminanceSource(BufferedImage image) {
         return new BufferedImageLuminanceSource(image);
     }
