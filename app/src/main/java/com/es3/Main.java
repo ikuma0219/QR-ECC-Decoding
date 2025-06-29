@@ -3,7 +3,7 @@ package com.es3;
 import com.es3.service.DecoderService;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         DecoderService decoder = new DecoderService();
         int successfulDecodes = 0;
 

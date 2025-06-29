@@ -39,7 +39,7 @@ public class EraseCandidateSelector {
             for (int[] point : symbol) {
                 int x = point[0];
                 int y = point[1];
-                // 範囲チェックおよび5x5の平均輝度計算
+                // 範囲チェックおよび7x7の平均輝度計算
                 if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
                     int brightness = denoisedImage[x][y];
                     // System.out.println(brightness);
@@ -57,7 +57,6 @@ public class EraseCandidateSelector {
                             }
                         }
                     }
-
                     int averageBrightness = totalBrightness / count;
                     totalConfidence += calculateTheta(brightness, averageBrightness);
                 }
@@ -66,7 +65,6 @@ public class EraseCandidateSelector {
             double averageConfidence = totalConfidence / 8.0;
             symbolConfidenceMap.put(symbolIndex, averageConfidence);
         }
-
         return symbolConfidenceMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue())
                 .limit(10)
