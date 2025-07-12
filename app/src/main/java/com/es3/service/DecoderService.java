@@ -34,6 +34,9 @@ public class DecoderService {
                 if (mergedData != null && mergedData.equals(originalData)) {
                     System.out.println(index + ".png: " + mergedData + " 復号成功！！！");
                     return true;
+                } else if (mergedData != null && !mergedData.isEmpty()) {
+                    System.out.println(mergedData + " 復号失敗!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    break;
                 }
             } catch (ArrayIndexOutOfBoundsException | IOException | NotFoundException | ChecksumException
                     | FormatException e) {
