@@ -43,8 +43,8 @@ public class EraseCandidateSelector {
                 if (x >= 0 && x < denoisedImage.length && y >= 0 && y < denoisedImage[0].length) {
                     int brightness = denoisedImage[x][y];
 
-                    // 信頼度判定：30〜240の範囲内なら0、外なら1
-                    if (brightness >= 30 && brightness <= 240) {
+                    // 信頼度判定：50〜220の範囲内なら0、外なら1
+                    if (brightness >= 50 && brightness <= 220) {
                         confidenceSum += 0;
                     } else {
                         confidenceSum += 1;
