@@ -13,7 +13,7 @@ import javax.imageio.ImageIO;
 public class DecoderService {
     private static final int MAX_RETRY = 5;
 
-    public boolean tryDecoding(int index) throws Exception {
+    public DecodeResult tryDecoding(int index) throws Exception {
         for (int attempt = 0; attempt <= MAX_RETRY; attempt++) {
             System.out.println("try" + attempt);
             try {
@@ -33,10 +33,10 @@ public class DecoderService {
 
                 if (mergedData != null && mergedData.equals(originalData)) {
                     System.out.println(index + ".png: " + mergedData + " 復号成功！！！");
-                    return true;
+                    return DecodeResult.SUCCESS;
                 } else if (mergedData != null && !mergedData.isEmpty()) {
                     System.out.println(mergedData + " 復号失敗!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                    break;
+                    return DecodeResult.MIS_CORRECTION;
                 }
             } catch (ArrayIndexOutOfBoundsException | IOException | NotFoundException | ChecksumException
                     | FormatException e) {
@@ -44,10 +44,16 @@ public class DecoderService {
             }
         }
         System.out.println(index + ".png: デコード失敗");
-        return false;
+        return DecodeResult.FAILURE;
     }
 
     private static BufferedImage loadAndResize(String path) throws IOException {
         return ImageUtil.resizeImage(ImageIO.read(new File(path)), 8);
+    }
+
+    public enum DecodeResult {
+        SUCCESS, // 復号成功
+        MIS_CORRECTION, // 誤訂正
+        FAILURE // 復号失敗
     }
 }
