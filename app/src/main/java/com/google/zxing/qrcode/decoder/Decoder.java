@@ -185,7 +185,7 @@
      try {
      //追記(2024/3/19)　消失訂正アルゴリズムへ
        errorsCorrected = rsDecoder.erasedecodeWithECCount(codewordsInts, erasePositions, codewordBytes.length - numDataCodewords);
-     //errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
+    //  errorsCorrected = rsDecoder.decodeWithECCount(codewordsInts, codewordBytes.length - numDataCodewords);
      } catch (ReedSolomonException ignored) {
        throw ChecksumException.getChecksumInstance();
      }
